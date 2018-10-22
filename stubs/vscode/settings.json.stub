@@ -4,7 +4,6 @@
     "editor.formatOnPaste": true,
     "files.exclude": {
         "**/node_modules": true,
-        "**/*.swp": true,
         ".gitignore": true,
         "tsconfig*.json": true,
         ".vscode": true,

@@ -20,6 +20,7 @@ program
     .option('--convention', 'file name convention', 'spinalcase')
     .option('--no-install', 'skip npm install')
     .option('--no-init', 'skip git init')
+    .option('--no-hide', 'do not hide config files in vscode')
     .action(env)
     .action(wrap(create))
 
@@ -265,11 +266,15 @@ function create(dir, options) {
         write(path.join(vscode, 'launch.json'), launch)
         // settings
         const settings = load('stubs/vscode/settings.json.stub', envs)
-        if (!rc.tslint) {
-            splice(settings['files.exclude'], key => /tslint/.test(key))
-        }
-        if (!rc.prettier) {
-            splice(settings['files.exclude'], key => /prettier/.test(key))
+        if (!options.hide) {
+            splice(settings['files.exclude'], key => !/node_modules/.test(key))
+        } else {
+            if (!rc.tslint) {
+                splice(settings['files.exclude'], key => /tslint/.test(key))
+            }
+            if (!rc.prettier) {
+                splice(settings['files.exclude'], key => /prettier/.test(key))
+            }
         }
         if (!rc.docs) {
             splice(settings['files.watcherExclude'], key => /docs/.test(key))
