@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "sourceMap": false,
+        "declaration": true,
+        "declarationDir": "lib/@types"
+    },
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*"],
+    "exclude": ["**/*.spec.ts"]
+}
