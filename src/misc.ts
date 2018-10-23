@@ -1,12 +1,13 @@
 // tslint:disable:no-console
+import { Router } from 'express'
 import fs from 'fs'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
-import { boot, Controller } from './controller'
+import { Controller } from './controller'
 import getLogger from './logger'
-import { App, Config, Logger, Router } from './types'
+import { App, Config, Logger } from './types'
 import { transformUrl } from './utils'
 
 /**
@@ -135,7 +136,7 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
             return item
         })
         .filter(item => item instanceof Controller)
-    const routes = boot(router, controllers, route => {
+    const routes = Controller.boot(router, controllers, route => {
         if (style) {
             route.url = transformUrl(route.url, style)
         }

@@ -30,6 +30,7 @@
         "variable-name": false,
         "only-arrow-functions": false,
         "unified-signatures": false,
+        "no-namespace": false,
         "forin":false,
         "file-name-casing": [true, "kebab-case"],
         "trailing-comma": [
