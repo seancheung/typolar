@@ -22,4 +22,4 @@ if (isDevMode()) {
     logger.prototype.fatal = wrap(logger.prototype.fatal)
 }
 
-export = log4js.getLogger
+export default log4js.getLogger
