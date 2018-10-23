@@ -1,11 +1,11 @@
-export * from './controller';
-export * from './model';
-export * from './service';
-import config from './config';
 import * as errors from './errors';
 import * as guards from './guards';
 import * as json from './json';
-import getLogger from './logger';
 import * as types from './types';
 import * as utils from './utils';
-export { config, errors, guards, json, getLogger, utils, types };
+export * from './controller';
+export * from './model';
+export * from './service';
+export { errors, guards, json, utils, types };
+export { default as getLogger } from './logger';
+export { default as config } from './config';
