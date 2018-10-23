@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser'
 import express from 'express'
+import log4js from 'log4js'
 import config from './config'
 import { NotFound } from './errors'
 import getLogger from './logger'
@@ -16,6 +17,7 @@ app.set('trust proxy', true)
 /**
  * Logger
  */
+log4js.configure(config.logger)
 const logger = getLogger('app')
 logHttp(app, getLogger('morgan'), config.logger.http.style)
 app.set('logger', logger)
