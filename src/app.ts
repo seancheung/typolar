@@ -24,9 +24,7 @@ export class Application {
         this.app = this.create(config)
     }
 
-    create(config: Config): App {
-        const app = express()
-
+    beforeMount(app: App, config: Config) {
         /**
          * Use the remote IP address in case nginx reverse proxy enabled
          */
@@ -47,9 +45,13 @@ export class Application {
          * Renderer
          */
         app.set('view engine', config.app.view.engine)
+    }
 
-        // TODO: mount
+    onMount(app: App, config: Config) {
+        // TODO:
+    }
 
+    afterMount(app: App, config: Config) {
         app.use((req, res, next) => {
             next(new NotFound())
         })
@@ -73,6 +75,14 @@ export class Application {
                 this.logger.error(err)
             }
         })
+    }
+
+    create(config: Config): App {
+        const app = express()
+
+        this.beforeMount(app, config)
+        this.onMount(app, config)
+        this.afterMount(app, config)
 
         return app
     }
@@ -89,11 +99,9 @@ export class Application {
         process.on('uncaughtException', (err: Error) => {
             this.logger.error('[uncaughtException]', err)
         })
-
         process.on('unhandledRejection', (reason: any) => {
             this.logger.error('[unhandledRejection]', reason)
         })
-
         process.on('warning', (warning: Error) => {
             this.logger.warn('[warning]', warning)
         })
@@ -149,12 +157,13 @@ export class Application {
             if (!this.server) {
                 reject(new Error('not started yet'))
             } else {
-                this.server.close(() => resolve())
+                this.server.close(() => {
+                    process.removeAllListeners('uncaughtException')
+                    process.removeAllListeners('unhandledRejection')
+                    process.removeAllListeners('warning')
+                    resolve()
+                })
             }
         })
-    }
-
-    exit(code: number) {
-        process.exit(code)
     }
 }
