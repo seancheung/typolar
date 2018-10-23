@@ -9,5 +9,3 @@ import getLogger from './logger'
 import * as types from './types'
 import * as utils from './utils'
 export { config, errors, guards, json, getLogger, utils, types }
-export { default as app } from './app'
-export { default as server } from './server'
