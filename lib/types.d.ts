@@ -8,8 +8,13 @@ export declare type Handler = RequestHandler;
 export declare type Middleware = Handler[];
 export declare type Conventions = Conventions;
 export declare type ServiceOptions = Partial<RequestOptions>;
-export { Response, Router, NextFunction as Next, Express as App } from 'express';
-export { Logger } from 'log4js';
+import { Router as ExpressRouter } from 'express';
+declare type Router = ExpressRouter;
+export { Router };
+export { Response, NextFunction as Next, Express as App } from 'express';
+import { Logger as Log4js } from 'log4js';
+declare type Logger = Log4js;
+export { Logger };
 export declare type Awaitable<T> = T | Promise<T>;
 export declare type ListType<T> = T extends Array<infer P> ? P : never;
 export interface Class<T = {}> {

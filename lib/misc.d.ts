@@ -1,6 +1,6 @@
-/// <reference types="express" />
+import { Router } from 'express';
 import { Conventions } from 'stringcase';
-import { App, Config, Logger, Router } from './types';
+import { App, Config, Logger } from './types';
 export declare function logHttp(app: App, logger: Logger, style: string): void;
 export declare function resolveHost(host: string, port: number): void;
 export declare function prettifyTrace(stack: string, shorten?: boolean): string;
