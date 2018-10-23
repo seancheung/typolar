@@ -76,4 +76,4 @@ process.on('warning', (warning: Error) => {
     logger.warn('[warning]', warning)
 })
 
-export = app
+export default app

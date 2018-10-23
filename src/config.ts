@@ -1,4 +1,4 @@
 import * as config from 'kuconfig'
 import { Config } from './types'
 
-export = (config as any) as Config
+export default (config as any) as Config

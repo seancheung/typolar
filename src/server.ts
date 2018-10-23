@@ -47,4 +47,4 @@ server.on('listening', () => {
 
 server.listen(config.app.port, config.app.host)
 
-export = server
+export default server
