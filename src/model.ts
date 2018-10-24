@@ -83,3 +83,5 @@ export function injectArray<T extends Class<Model>>(
         })
     }
 }
+
+export default Model

@@ -4,10 +4,17 @@ import log4js from 'log4js'
 import config from './config'
 import { NotFound } from './errors'
 import getLogger from './logger'
-import { logHttp, mountRoutes } from './misc'
-import { Next, Request, Response } from './types'
+import { logHttp, mountRoutes, start } from './misc'
+import { App, Next, Request, Response } from './types'
 
-const app = express()
+const app: App = Object.assign(
+    {
+        start() {
+            return start(app, config.app)
+        }
+    },
+    express()
+)
 
 /**
  * Use the remote IP address in case nginx reverse proxy enabled

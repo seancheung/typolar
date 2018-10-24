@@ -1,7 +1,6 @@
 import request from 'request-promise'
-import config from './config'
 import { replacer, reviver } from './json'
-import { Awaitable, Class, ServiceOptions } from './types'
+import { Awaitable, Class, Config, ServiceOptions } from './types'
 
 export abstract class Service<TContract = any> {
     /**
@@ -13,6 +12,14 @@ export abstract class Service<TContract = any> {
         this: Class<T>,
         options?: ServiceOptions
     ): T {
+        if (!options) {
+            const config: Config = require('kuconfig')
+            options = {
+                jsonReplacer: replacer.bind(null, config.app.service.style),
+                jsonReviver: reviver.bind(null, config.app.service.style),
+                baseUrl: config.app.service.baseUrl
+            }
+        }
         return new this(options)
     }
     /**
@@ -26,8 +33,6 @@ export abstract class Service<TContract = any> {
             Object.assign(
                 {
                     json: true,
-                    jsonReplacer: replacer.bind(null, config.app.service.style),
-                    jsonReviver: reviver.bind(null, config.app.service.style),
                     resolveWithFullResponse: true
                 },
                 options
@@ -40,13 +45,11 @@ export abstract class Service<TContract = any> {
      *
      * @param options Request options
      */
-    protected async _request<T = TContract>(
-        options: Service.Options
-    ): Promise<T> {
+    protected async _request<T = TContract>(options: Options): Promise<T> {
         let { uri } = options
         const { method } = options
         const { headers, query: qs, data: body } = await this._transformRequest(
-            options as Service.QueryOptions
+            options as QueryOptions
         )
         if (this._prefix) {
             uri = `/${this._prefix}/${uri}/`.replace(/\/{2,}/g, '/')
@@ -67,10 +70,7 @@ export abstract class Service<TContract = any> {
      * @param uri Request uri
      * @param query Query string object
      */
-    protected _get<T = TContract>(
-        uri: string,
-        query?: Service.Query
-    ): Promise<T> {
+    protected _get<T = TContract>(uri: string, query?: Query): Promise<T> {
         return this._request<T>({ uri, method: 'get', query })
     }
 
@@ -91,8 +91,8 @@ export abstract class Service<TContract = any> {
      * @returns Query options
      */
     protected _transformRequest(
-        options: Readonly<Service.QueryOptions>
-    ): Awaitable<Service.QueryOptions> {
+        options: Readonly<QueryOptions>
+    ): Awaitable<QueryOptions> {
         return options
     }
 
@@ -103,57 +103,55 @@ export abstract class Service<TContract = any> {
      * @returns Response data
      */
     protected _transformResponse<T = TContract>(
-        res: Service.Response<T>
+        res: Response<T>
     ): Awaitable<T> {
         return res.body
     }
 
-    private async _send<T = TContract>(
-        options: any
-    ): Promise<Service.Response<T>> {
+    private async _send<T = TContract>(options: any): Promise<Response<T>> {
         const response = await this._client(options)
         return response
     }
 }
 
-export namespace Service {
-    export type Query = Record<string, any>
-    export type Headers = Record<string, any>
-    export type Method = 'get' | 'post' | 'put' | 'delete' | 'patch'
+export type Query = Record<string, any>
+export type Headers = Record<string, any>
+export type Method = 'get' | 'post' | 'put' | 'delete' | 'patch'
 
-    export interface RequestOptions {
-        uri: string
-        method: Method
-    }
-
-    export interface QueryOptions {
-        headers: Headers
-        query: Query
-        data: any
-    }
-
-    export interface Options
-        extends Readonly<RequestOptions>,
-            Partial<QueryOptions> {}
-
-    export interface Contract<T = any> {
-        success: boolean
-        state: number
-        msg?: string
-        data?: T
-    }
-
-    export interface Request {
-        uri: URL
-        method: string
-        headers: Headers
-    }
-
-    export interface Response<T = any> {
-        headers: Headers
-        statusCode: number
-        statusMessage: string
-        body: T
-        request: Request
-    }
+export interface RequestOptions {
+    uri: string
+    method: Method
 }
+
+export interface QueryOptions {
+    headers: Headers
+    query: Query
+    data: any
+}
+
+export interface Options
+    extends Readonly<RequestOptions>,
+        Partial<QueryOptions> {}
+
+export interface Contract<T = any> {
+    success: boolean
+    state: number
+    msg?: string
+    data?: T
+}
+
+export interface Request {
+    uri: URL
+    method: string
+    headers: Headers
+}
+
+export interface Response<T = any> {
+    headers: Headers
+    statusCode: number
+    statusMessage: string
+    body: T
+    request: Request
+}
+
+export default Service

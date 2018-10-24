@@ -18,48 +18,46 @@ type Transform = (route: Route) => void
 
 export abstract class Controller {}
 
-export namespace Controller {
-    export function* boot(
-        router: Router,
-        instances: Controller[],
-        trasnform?: Transform
-    ) {
-        for (const instance of instances) {
-            const meta: Record<string, Meta> = Reflect.get(instance, META)
-            if (!meta) {
+export function* boot(
+    router: Router,
+    instances: Controller[],
+    trasnform?: Transform
+) {
+    for (const instance of instances) {
+        const meta: Record<string, Meta> = Reflect.get(instance, META)
+        if (!meta) {
+            continue
+        }
+        const base: Meta = meta.constructor || {}
+        delete meta.constructor
+        for (const key in meta) {
+            const handler = Reflect.get(instance, key)
+            if (typeof handler !== 'function') {
                 continue
             }
-            const base: Meta = meta.constructor || {}
-            delete meta.constructor
-            for (const key in meta) {
-                const handler = Reflect.get(instance, key)
-                if (typeof handler !== 'function') {
-                    continue
-                }
-                const method = meta[key].method || base.method || 'get'
-                const name = `/${base.name || ''}/${meta[key].name || ''}`
-                const middlewares = (base.middlewares || []).concat(
-                    meta[key].middlewares || []
-                )
-                const url = name.replace(/\/{2,}/g, '/').replace(/\/$/, '')
+            const method = meta[key].method || base.method || 'get'
+            const name = `/${base.name || ''}/${meta[key].name || ''}`
+            const middlewares = (base.middlewares || []).concat(
+                meta[key].middlewares || []
+            )
+            const url = name.replace(/\/{2,}/g, '/').replace(/\/$/, '')
 
-                const func = Reflect.get(router, method.toLowerCase())
-                if (!func) {
-                    throw new Error(`method ${method} not found in router`)
-                }
-                const opts = { method, url, handler, middlewares }
-                if (trasnform) {
-                    trasnform(opts)
-                }
-                Reflect.apply(func, router, [
-                    opts.url,
-                    ...opts.middlewares,
-                    opts.handler.bind(instance)
-                ])
-                yield { method: opts.method, url: opts.url }
+            const func = Reflect.get(router, method.toLowerCase())
+            if (!func) {
+                throw new Error(`method ${method} not found in router`)
             }
-            Reflect.deleteProperty(instance, META)
+            const opts = { method, url, handler, middlewares }
+            if (trasnform) {
+                trasnform(opts)
+            }
+            Reflect.apply(func, router, [
+                opts.url,
+                ...opts.middlewares,
+                opts.handler.bind(instance)
+            ])
+            yield { method: opts.method, url: opts.url }
         }
+        Reflect.deleteProperty(instance, META)
     }
 }
 
@@ -111,3 +109,5 @@ export function route(
         Object.assign(metadata, { [key]: value })
     }
 }
+
+export default Controller
