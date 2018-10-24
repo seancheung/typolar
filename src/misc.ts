@@ -1,14 +1,25 @@
 // tslint:disable:no-console
+import bodyParser from 'body-parser'
 import { Router } from 'express'
 import fs from 'fs'
 import { createServer } from 'http'
+import log4js from 'log4js'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
 import { boot, Controller } from './controller'
+import { NotFound } from './errors'
 import getLogger from './logger'
-import { App, Config, Express, Logger, Server } from './types'
+import {
+    Config,
+    Express,
+    Logger,
+    Next,
+    Request,
+    Response,
+    Server
+} from './types'
 import { isDevMode, transformUrl } from './utils'
 
 /**
@@ -19,7 +30,7 @@ import { isDevMode, transformUrl } from './utils'
  * @param logger Logger instance
  * @param style log style
  */
-export function logHttp(app: App, logger: Logger, style: string) {
+export function logHttp(app: Express, logger: Logger, style: string) {
     app.use(
         morgan(style, {
             stream: {
@@ -155,7 +166,7 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
  * @param app Express application instance
  * @param config App config
  */
-export function mountRoutes(app: App, config: Config.App) {
+export function mountRoutes(app: Express, config: Config.App) {
     const router = loadRoutes(config.router.path, config.router.style)
     const baseUrl = config.router.style
         ? transformUrl(config.router.baseUrl, config.router.style)
@@ -198,6 +209,64 @@ export function mountRoutes(app: App, config: Config.App) {
         }
     }
     app.use(baseUrl, router)
+}
+
+export function setup(app: Express, config: Config) {
+    /**
+     * Use the remote IP address in case nginx reverse proxy enabled
+     */
+    app.set('trust proxy', true)
+
+    /**
+     * Logger
+     */
+    log4js.configure(config.logger)
+    logHttp(app, getLogger('morgan'), config.logger.http.style)
+    const logger = getLogger('app')
+
+    /**
+     * body parser
+     */
+    app.use(bodyParser.json())
+    app.use(bodyParser.urlencoded({ extended: false }))
+
+    /**
+     * Renderer
+     */
+    app.set('view engine', config.app.view.engine)
+    app.set('views', config.app.view.path)
+
+    /**
+     * mount router
+     */
+    mountRoutes(app, config.app)
+
+    /**
+     * catch 404 and forward to error handler
+     */
+    app.use((req, res, next) => {
+        next(new NotFound())
+    })
+
+    /**
+     * error handler
+     */
+    app.use((err: any, req: Request, res: Response, next: Next) => {
+        // set http status
+        res.status(err.code || 500)
+
+        // send error
+        res.json({
+            name: err.name,
+            error: err.code || 500,
+            message: err.message
+        })
+
+        // bypass 4xx errors
+        if (!err.code || !/^(4[0-9]{2}|503)$/.test(err.code)) {
+            logger.error(err)
+        }
+    })
 }
 
 export function start(app: Express, config: Config.Server): Server {

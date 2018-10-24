@@ -1,5 +1,5 @@
 export { default } from './app'
-export { default as app } from './app'
+export { default as Application } from './app'
 export { default as config } from './config'
 export * from './controller'
 export * from './model'

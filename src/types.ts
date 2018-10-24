@@ -37,6 +37,13 @@ export type App = Express & {
     start(): Server
 }
 
+export interface Contract<T = any> {
+    success: boolean
+    state: number
+    msg?: string
+    data?: T
+}
+
 export interface Config {
     readonly app: Readonly<Config.App>
     readonly logger: Readonly<Config.Logger>
@@ -77,5 +84,38 @@ export declare namespace Config {
         stack: Readonly<{
             pretty?: boolean
         }>
+    }
+}
+
+export declare namespace Service {
+    type Query = Record<string, any>
+    type Headers = Record<string, any>
+    type Method = 'get' | 'post' | 'put' | 'delete' | 'patch'
+
+    interface RequestOptions {
+        uri: string
+        method: Method
+    }
+
+    interface QueryOptions {
+        headers: Headers
+        query: Query
+        data: any
+    }
+
+    interface Options extends Readonly<RequestOptions>, Partial<QueryOptions> {}
+
+    interface Request {
+        uri: URL
+        method: string
+        headers: Headers
+    }
+
+    interface Response<T = any> {
+        headers: Headers
+        statusCode: number
+        statusMessage: string
+        body: T
+        request: Request
     }
 }
