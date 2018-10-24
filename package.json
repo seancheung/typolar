@@ -8,7 +8,9 @@
         "lint": "tslint 'src/**/*.ts' 'test/**/*.ts'",
         "pretest": "npm run lint",
         "test": "cross-env NODE_ENV=test LOG_LEVEL=off TS_NODE_FILES=true mocha -r ts-node/register 'test/**/*.spec.ts'",
-        "release": "npm run build && npm publish lib"
+        "prerelease": "cpy LICENSE 'package*.json' '*.md' lib",
+        "release": "npm publish lib",
+        "postrelease": "del-cli \"lib/LICENSE\" \"lib/package*.json\" \"lib/*.md\" "
     },
     "repository": {
         "type": "git",
@@ -25,10 +27,11 @@
     },
     "homepage": "https://github.com/seancheung/typolar#readme",
     "devDependencies": {
-        "cross-env": "^5.2.0",
-        "@types/morgan": "^1.7.35",
         "@types/express": "^4.16.0",
+        "@types/morgan": "^1.7.35",
         "@types/request-promise": "^4.1.42",
+        "cpy-cli": "^2.0.0",
+        "cross-env": "^5.2.0",
         "del-cli": "^1.1.0",
         "mocha": "^5.2.0",
         "prettier": "^1.14.3",
