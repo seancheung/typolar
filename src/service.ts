@@ -28,7 +28,8 @@ export abstract class Service<TContract = any> {
                     json: true,
                     jsonReplacer: replacer.bind(null, config.app.service.style),
                     jsonReviver: reviver.bind(null, config.app.service.style),
-                    resolveWithFullResponse: true
+                    resolveWithFullResponse: true,
+                    baseUrl: config.app.service.baseUrl
                 },
                 options
             )
