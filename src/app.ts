@@ -8,12 +8,12 @@ import { logHttp, mountRoutes, start } from './misc'
 import { App, Next, Request, Response } from './types'
 
 const app: App = Object.assign(
+    express(),
     {
         start() {
             return start(app, config.app)
         }
-    },
-    express()
+    }
 )
 
 /**
