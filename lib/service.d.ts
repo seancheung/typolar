@@ -25,12 +25,6 @@ export interface QueryOptions {
 }
 export interface Options extends Readonly<RequestOptions>, Partial<QueryOptions> {
 }
-export interface Contract<T = any> {
-    success: boolean;
-    state: number;
-    msg?: string;
-    data?: T;
-}
 export interface Request {
     uri: URL;
     method: string;
