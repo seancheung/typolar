@@ -1,6 +1,6 @@
 {
     "name": "typolar",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "description": "A simple typescript framework",
     "scripts": {
         "prebuild": "del-cli \"lib/**\" \"!lib\" \"!.gitignore\"",

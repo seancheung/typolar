@@ -11,7 +11,8 @@ Recommended CLI tool: [typolar-cli](https://github.com/seancheung/typolar-cli)
 ### App
 
 ```typescript
-import app from 'typolar'
+import Application from 'typolar'
+const app = new Application()
 app.start()
 ```
 
@@ -61,7 +62,8 @@ export default class UserController extends Controller {
 ### Service
 
 ```typescript
-import { Service, Contract } from 'typolar/service'
+import { Service } from 'typolar'
+import { Contract } from 'typolar/types'
 
 export class UserService extends Service<Contract> {
     /**

@@ -1,88 +1,56 @@
-import bodyParser from 'body-parser'
 import express from 'express'
-import log4js from 'log4js'
-import config from './config'
-import { NotFound } from './errors'
 import getLogger from './logger'
-import { logHttp, mountRoutes, start } from './misc'
-import { App, Next, Request, Response } from './types'
+import { setup, start } from './misc'
+import { Config, Express, Logger, Server } from './types'
 
-const app: App = Object.assign(
-    express(),
-    {
-        start() {
-            return start(app, config.app)
+class Application {
+    private _app: Express
+    private _options: Config
+    private _logger: Logger
+    private _server: Server
+
+    get express(): Express {
+        return this._app
+    }
+
+    get options(): Config {
+        return this._options
+    }
+
+    get logger(): Logger {
+        return this._logger
+    }
+
+    constructor(options?: Config) {
+        if (!options) {
+            options = require('kuconfig')
         }
+        const app = express()
+        setup(app, options)
+        this._options = options
+        this._logger = getLogger('app')
+        this._app = app
     }
-)
 
-/**
- * Use the remote IP address in case nginx reverse proxy enabled
- */
-app.set('trust proxy', true)
+    start(): Server {
+        if (this._server) {
+            return this._server
+        }
+        process.on('uncaughtException', (err: Error) => {
+            this._logger.error('[uncaughtException]', err)
+        })
 
-/**
- * Logger
- */
-log4js.configure(config.logger)
-const logger = getLogger('app')
-logHttp(app, getLogger('morgan'), config.logger.http.style)
-app.set('logger', logger)
+        process.on('unhandledRejection', (reason: any) => {
+            this._logger.error('[unhandledRejection]', reason)
+        })
 
-/**
- * body parser
- */
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
-
-/**
- * Renderer
- */
-app.set('view engine', config.app.view.engine)
-app.set('views', config.app.view.path)
-
-/**
- * mount router
- */
-mountRoutes(app, config.app)
-
-/**
- * catch 404 and forward to error handler
- */
-app.use((req, res, next) => {
-    next(new NotFound())
-})
-
-/**
- * error handler
- */
-app.use((err: any, req: Request, res: Response, next: Next) => {
-    // set http status
-    res.status(err.code || 500)
-
-    // send error
-    res.json({
-        name: err.name,
-        error: err.code || 500,
-        message: err.message
-    })
-
-    // bypass 4xx errors
-    if (!err.code || !/^(4[0-9]{2}|503)$/.test(err.code)) {
-        logger.error(err)
+        process.on('warning', (warning: Error) => {
+            this._logger.warn('[warning]', warning)
+        })
+        const server = start(this._app, this._options.app)
+        this._server = server
+        return server
     }
-})
+}
 
-process.on('uncaughtException', (err: Error) => {
-    logger.error('[uncaughtException]', err)
-})
-
-process.on('unhandledRejection', (reason: any) => {
-    logger.error('[unhandledRejection]', reason)
-})
-
-process.on('warning', (warning: Error) => {
-    logger.warn('[warning]', warning)
-})
-
-export default app
+export default Application
