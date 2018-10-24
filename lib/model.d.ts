@@ -7,3 +7,4 @@ export declare function injectable<T extends Class>(ctor: T): {
 } & T;
 export declare function inject<T extends Class<Model>>(type: T): PropertyDecorator;
 export declare function injectArray<T extends Class<Model>>(type: T): PropertyDecorator;
+export default Model;
