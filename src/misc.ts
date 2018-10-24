@@ -1,14 +1,15 @@
 // tslint:disable:no-console
 import { Router } from 'express'
 import fs from 'fs'
+import { createServer } from 'http'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
-import { Controller } from './controller'
+import { boot, Controller } from './controller'
 import getLogger from './logger'
-import { App, Config, Logger } from './types'
-import { transformUrl } from './utils'
+import { App, Config, Express, Logger, Server } from './types'
+import { isDevMode, transformUrl } from './utils'
 
 /**
  * Mount http logging
@@ -136,7 +137,7 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
             return item
         })
         .filter(item => item instanceof Controller)
-    const routes = Controller.boot(router, controllers, route => {
+    const routes = boot(router, controllers, route => {
         if (style) {
             route.url = transformUrl(route.url, style)
         }
@@ -197,4 +198,51 @@ export function mountRoutes(app: App, config: Config.App) {
         }
     }
     app.use(baseUrl, router)
+}
+
+export function start(app: Express, config: Config.Server): Server {
+    const server = createServer(app)
+    const logger = getLogger('server')
+
+    server.on('error', err => {
+        const error = err as any
+        if (error.syscall === 'listen') {
+            const bind =
+                typeof config.port === 'string'
+                    ? 'Pipe ' + config.port
+                    : 'Port ' + config.port
+
+            // handle specific listen errors with friendly messages
+            switch (error.code) {
+                case 'EACCES':
+                    logger.fatal(`${bind} requires elevated privileges`)
+                    break
+                case 'EADDRINUSE':
+                    logger.fatal(`${bind} is already in use`)
+                    break
+                default:
+                    logger.fatal(err)
+                    break
+            }
+        } else {
+            logger.fatal(err)
+        }
+
+        process.exit(1)
+    })
+
+    server.on('listening', () => {
+        const addr = server.address()
+        const bind =
+            typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+        if (isDevMode()) {
+            resolveHost(config.host, config.port)
+        } else {
+            logger.info('Listening on ' + bind)
+        }
+    })
+
+    server.listen(config.port, config.host)
+
+    return server
 }

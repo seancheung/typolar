@@ -15,10 +15,10 @@ export type Conventions = Conventions
 
 export type ServiceOptions = Partial<RequestOptions>
 
-import { Router as ExpressRouter } from 'express'
+import { Express, Router as ExpressRouter } from 'express'
 type Router = ExpressRouter
 export { Router }
-export { Response, NextFunction as Next, Express as App } from 'express'
+export { Response, NextFunction as Next, Express } from 'express'
 import { Logger as Log4js } from 'log4js'
 type Logger = Log4js
 export { Logger }
@@ -31,16 +31,24 @@ export interface Class<T = {}> {
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type Constructor = Function
 
+import { Server } from 'http'
+export { Server }
+export type App = Express & {
+    start(): Server
+}
+
 export interface Config {
     readonly app: Readonly<Config.App>
     readonly logger: Readonly<Config.Logger>
 }
 
 export declare namespace Config {
-    interface App {
-        tag: string
+    interface Server {
         host: string
         port: number
+    }
+    interface App extends Server {
+        tag: string
         router: Readonly<{
             style: Conventions
             baseUrl: string
