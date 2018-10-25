@@ -1,8 +1,9 @@
 import request from 'request-promise'
 import stringcase from 'stringcase'
+import config from './config'
 import { replacer, reviver } from './json'
 import getLogger from './logger'
-import { Awaitable, Class, Config, Logger, ServiceOptions } from './types'
+import { Awaitable, Class, Logger, ServiceOptions } from './types'
 
 export abstract class Service<TContract = any> {
     /**
@@ -15,9 +16,9 @@ export abstract class Service<TContract = any> {
         options?: ServiceOptions
     ): T {
         if (!options) {
-            const config: Config = require('kuconfig')
-            if (config.app && config.app.service) {
-                const { transformer, baseUrl } = config.app.service
+            const opts = config()
+            if (opts.app && opts.app.service) {
+                const { transformer, baseUrl } = opts.app.service
                 options = Object.assign(
                     { baseUrl },
                     transformer

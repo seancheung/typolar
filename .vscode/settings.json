@@ -1,0 +1,11 @@
+{
+    "mochaExplorer.files": "src/**/*.spec.ts",
+    "mochaExplorer.mochaPath": "node_modules/mocha",
+    "mochaExplorer.require": "node_modules/ts-node/register",
+    "mochaExplorer.env": {
+        "TS_NODE_FILES": "true"
+    },
+    "mochaExplorer.nodePath": null,
+    "editor.formatOnSave": true,
+    "tslint.autoFixOnSave": true
+}

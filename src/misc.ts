@@ -8,7 +8,7 @@ import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
-import { boot, Controller } from './controller'
+import { boot } from './controller'
 import { NotFound } from './errors'
 import getLogger from './logger'
 import {
@@ -147,7 +147,6 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
             }
             return item
         })
-        .filter(item => item instanceof Controller)
     const routes = boot(router, controllers, route => {
         if (style) {
             route.url = transformUrl(route.url, style)

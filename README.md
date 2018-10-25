@@ -20,6 +20,7 @@ app.start()
 
 ```typescript
 import { config } from 'typolar'
+const tag = config().app.tag
 ```
 
 ### Model
@@ -27,9 +28,8 @@ import { config } from 'typolar'
 e.g. src/models/user.ts
 
 ```typescript
-import { injectable, Model } from 'typolar'
+import { Model } from 'typolar'
 
-@injectable
 export default class User extends Model {
     // TODO: define user model
 }
