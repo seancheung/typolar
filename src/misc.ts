@@ -166,49 +166,55 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
  * @param app Express application instance
  * @param config App config
  */
-export function mountRoutes(app: Express, config: Config.App) {
-    const router = loadRoutes(config.router.path, config.router.style)
-    const baseUrl = config.router.style
-        ? transformUrl(config.router.baseUrl, config.router.style)
-        : config.router.baseUrl
+export function mountRoutes(app: Express, config: Config.App.Router) {
+    const router = loadRoutes(config.path, config.style)
+    let { baseUrl } = config
+    if (baseUrl && config.style) {
+        baseUrl = transformUrl(baseUrl, config.style)
+    }
     if (process.env.NODE_ENV === 'development') {
-        if (config.router.mock) {
-            let filepath = config.router.mock
+        if (config.mock) {
+            let filepath = config.mock
             if (!path.isAbsolute(filepath)) {
                 filepath = path.resolve(process.cwd(), filepath)
             }
             if (fs.existsSync(filepath)) {
                 const logger = getLogger('mockit')
-                import('mockit-express').then(({ default: mockit }) => {
-                    router.use(
-                        mockit(
-                            filepath,
-                            (err: Error, changed: boolean) => {
-                                if (err) {
-                                    logger.error(err)
-                                } else if (changed) {
-                                    logger.info('file changed:', filepath)
-                                } else {
-                                    logger.warn('file removed:', filepath)
-                                }
-                            },
-                            ({ method, path: url, proxy, bypass }) => {
-                                logger.debug(
-                                    `${bypass ? 'bypassed' : 'mounted'} ${
-                                        proxy ? 'proxy ' : ''
-                                    }route ${method} ${url}`
-                                )
+                const mockit = require(require.resolve('mockit-express', {
+                    paths: [process.cwd()]
+                }))
+                router.use(
+                    mockit(
+                        filepath,
+                        (err: Error, changed: boolean) => {
+                            if (err) {
+                                logger.error(err)
+                            } else if (changed) {
+                                logger.info('file changed:', filepath)
+                            } else {
+                                logger.warn('file removed:', filepath)
                             }
-                        )
+                        },
+                        (route: any) => {
+                            logger.debug(
+                                `${route.bypass ? 'bypassed' : 'mounted'} ${
+                                    route.proxy ? 'proxy ' : ''
+                                }route ${route.method} ${route.url}`
+                            )
+                        }
                     )
-                })
+                )
             } else {
                 // tslint:disable-next-line:no-console
                 console.warn('mock file defined but not found')
             }
         }
     }
-    app.use(baseUrl, router)
+    if (baseUrl) {
+        app.use(baseUrl, router)
+    } else {
+        app.use(router)
+    }
 }
 
 export function setup(app: Express, config: Config) {
@@ -233,13 +239,23 @@ export function setup(app: Express, config: Config) {
     /**
      * Renderer
      */
-    app.set('view engine', config.app.view.engine)
-    app.set('views', config.app.view.path)
+    if (config.app.view) {
+        app.engine(
+            config.app.view.engine,
+            require(require.resolve(config.app.view.engine, {
+                paths: [process.cwd()]
+            })).__express
+        )
+        app.set('view engine', config.app.view.engine)
+        app.set('views', config.app.view.path)
+    }
 
     /**
      * mount router
      */
-    mountRoutes(app, config.app)
+    if (config.app.router) {
+        mountRoutes(app, config.app.router)
+    }
 
     /**
      * catch 404 and forward to error handler
