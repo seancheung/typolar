@@ -1,3 +1,3 @@
 import { Config } from './types';
-declare const _default: Config;
+declare const _default: () => Config;
 export default _default;
