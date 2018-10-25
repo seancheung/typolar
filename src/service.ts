@@ -1,6 +1,8 @@
 import request from 'request-promise'
+import stringcase from 'stringcase'
 import { replacer, reviver } from './json'
-import { Awaitable, Class, Config, ServiceOptions } from './types'
+import getLogger from './logger'
+import { Awaitable, Class, Config, Logger, ServiceOptions } from './types'
 
 export abstract class Service<TContract = any> {
     /**
@@ -14,10 +16,13 @@ export abstract class Service<TContract = any> {
     ): T {
         if (!options) {
             const config: Config = require('kuconfig')
-            options = {
-                jsonReplacer: replacer.bind(null, config.app.service.style),
-                jsonReviver: reviver.bind(null, config.app.service.style),
-                baseUrl: config.app.service.baseUrl
+            if (config.app && config.app.service) {
+                const { transform, baseUrl } = config.app.service
+                options = {
+                    jsonReplacer: replacer.bind(null, transform),
+                    jsonReviver: reviver.bind(null, transform),
+                    baseUrl
+                }
             }
         }
         return new this(options)
@@ -26,6 +31,7 @@ export abstract class Service<TContract = any> {
      * Base uri
      */
     protected readonly _prefix?: string
+    protected readonly _logger: Logger
     private readonly _client: typeof request
 
     constructor(options: ServiceOptions) {
@@ -38,6 +44,7 @@ export abstract class Service<TContract = any> {
                 options
             )
         )
+        this._logger = getLogger(stringcase.spinalcase(this.constructor.name))
     }
 
     /**

@@ -13,7 +13,7 @@ export function reviver(style: Conventions, key: string, value: any) {
     if (Array.isArray(value)) {
         return value
     }
-    if (style in stringcase && typeof value === 'object') {
+    if (style && style in stringcase && typeof value === 'object') {
         return Object.entries(value).reduce(
             (o, [k, v]) => Object.assign(o, { [stringcase[style](k)]: v }),
             {}
@@ -32,7 +32,7 @@ export function replacer(style: Conventions, key: string, value: any) {
     if (Array.isArray(value)) {
         return value
     }
-    if (style in stringcase && typeof value === 'object') {
+    if (style && style in stringcase && typeof value === 'object') {
         return Object.entries(value).reduce(
             (o, [k, v]) => Object.assign(o, { [stringcase[style](k)]: v }),
             {}

@@ -1,4 +1,6 @@
-import { Handler, Middleware, Router } from './types'
+import stringcase from 'stringcase'
+import getLogger from './logger'
+import { Handler, Logger, Middleware, Router } from './types'
 
 const META = Symbol('metadata')
 type MixedDecorator = any
@@ -16,7 +18,13 @@ interface Route {
 }
 type Transform = (route: Route) => void
 
-export abstract class Controller {}
+export abstract class Controller {
+    protected readonly _logger: Logger
+
+    constructor() {
+        this._logger = getLogger(stringcase.spinalcase(this.constructor.name))
+    }
+}
 
 export function* boot(
     router: Router,
@@ -28,19 +36,19 @@ export function* boot(
         if (!meta) {
             continue
         }
-        const base: Meta = meta.constructor || {}
-        delete meta.constructor
+        const base: Meta = meta.$ctor || {}
+        delete meta.$ctor
         for (const key in meta) {
             const handler = Reflect.get(instance, key)
             if (typeof handler !== 'function') {
                 continue
             }
             const method = meta[key].method || base.method || 'get'
-            const name = `/${base.name || ''}/${meta[key].name || ''}`
+            const name = `/${base.name || '/'}/${meta[key].name || '/'}`
             const middlewares = (base.middlewares || []).concat(
                 meta[key].middlewares || []
             )
-            const url = name.replace(/\/{2,}/g, '/').replace(/\/$/, '')
+            const url = name.replace(/\/{2,}/g, '/').replace(/(.+)\/$/, '$1')
 
             const func = Reflect.get(router, method.toLowerCase())
             if (!func) {
@@ -81,8 +89,8 @@ export function route(
         let key
         if (typeof target === 'function') {
             // class decorator
-            key = 'constructor'
-            prop = target.name
+            key = '$ctor'
+            prop = target.name.replace(/(.+)controller$/i, '$1')
             Object.seal(target)
             Object.seal(target.prototype)
             target = target.prototype
