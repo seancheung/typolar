@@ -17,12 +17,22 @@ export abstract class Service<TContract = any> {
         if (!options) {
             const config: Config = require('kuconfig')
             if (config.app && config.app.service) {
-                const { transform, baseUrl } = config.app.service
-                options = {
-                    jsonReplacer: replacer.bind(null, transform),
-                    jsonReviver: reviver.bind(null, transform),
-                    baseUrl
-                }
+                const { transformer, baseUrl } = config.app.service
+                options = Object.assign(
+                    { baseUrl },
+                    transformer
+                        ? {
+                              jsonReplacer: replacer.bind(
+                                  null,
+                                  transformer.replacer
+                              ),
+                              jsonReviver: reviver.bind(
+                                  null,
+                                  transformer.reviver
+                              )
+                          }
+                        : {}
+                )
             }
         }
         return new this(options)
