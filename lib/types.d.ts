@@ -58,7 +58,13 @@ export declare namespace Config {
         }
         interface Service {
             baseUrl?: string;
-            transform?: Conventions;
+            transformer?: Service.Transformer;
+        }
+        namespace Service {
+            interface Transformer {
+                replacer?: Conventions;
+                reviver?: Conventions;
+            }
         }
         interface View {
             engine: string;
