@@ -1,4 +1,4 @@
-import { Handler, Middleware, Router } from './types';
+import { Handler, Logger, Middleware, Router } from './types';
 declare type MixedDecorator = any;
 interface Route {
     method: string;
@@ -8,6 +8,8 @@ interface Route {
 }
 declare type Transform = (route: Route) => void;
 export declare abstract class Controller {
+    protected readonly _logger: Logger;
+    constructor();
 }
 export declare function boot(router: Router, instances: Controller[], trasnform?: Transform): IterableIterator<{
     method: string;

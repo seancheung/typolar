@@ -1,7 +1,8 @@
-import { Awaitable, Class, ServiceOptions } from './types';
+import { Awaitable, Class, Logger, ServiceOptions } from './types';
 export declare abstract class Service<TContract = any> {
     static create<T extends Service>(this: Class<T>, options?: ServiceOptions): T;
     protected readonly _prefix?: string;
+    protected readonly _logger: Logger;
     private readonly _client;
     constructor(options: ServiceOptions);
     protected _request<T = TContract>(options: Options): Promise<T>;

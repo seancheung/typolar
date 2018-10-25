@@ -45,20 +45,25 @@ export declare namespace Config {
     }
     interface App extends Server {
         tag: string;
-        router: Readonly<{
-            style: Conventions;
-            baseUrl: string;
-            mock?: string;
-            path?: string;
-        }>;
-        service: Readonly<{
-            baseUrl: string;
+        router?: Readonly<App.Router>;
+        service?: Readonly<App.Service>;
+        view?: Readonly<App.View>;
+    }
+    namespace App {
+        interface Router {
+            path: string;
             style?: Conventions;
-        }>;
-        view: Readonly<{
+            baseUrl?: string;
+            mock?: string;
+        }
+        interface Service {
+            baseUrl?: string;
+            transform?: Conventions;
+        }
+        interface View {
             engine: string;
             path: string;
-        }>;
+        }
     }
     interface Logger {
         http: {
