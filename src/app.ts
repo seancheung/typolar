@@ -1,4 +1,5 @@
 import express from 'express'
+import config from './config'
 import getLogger from './logger'
 import { setup, start } from './misc'
 import { Config, Express, Logger, Server } from './types'
@@ -23,7 +24,7 @@ class Application {
 
     constructor(options?: Config) {
         if (!options) {
-            options = require('kuconfig')
+            options = config()
         }
         const app = express()
         setup(app, options)
