@@ -7,9 +7,9 @@ declare class Application {
     private _logger;
     private _server;
     readonly express: Express;
-    readonly options: Config;
+    readonly options: Readonly<Config>;
     readonly logger: Logger;
-    constructor(options?: Config);
+    constructor(dirname: string, options?: Config);
     start(): Server;
 }
 export default Application;

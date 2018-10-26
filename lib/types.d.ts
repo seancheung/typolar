@@ -68,7 +68,7 @@ export declare namespace Config {
         }
         interface View {
             engine: string;
-            path: string;
+            path?: string;
         }
     }
     interface Logger {
