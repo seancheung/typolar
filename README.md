@@ -1,6 +1,13 @@
 # Typolar
 
+[![Master Build][travis-master]][travis-url]
+[![Develop Build][travis-develop]][travis-url]
+
 A simple typescript framework
+
+[travis-master]: https://img.shields.io/travis/seancheung/typolar/master.svg?label=master
+[travis-develop]: https://img.shields.io/travis/seancheung/typolar/develop.svg?label=develop
+[travis-url]: https://travis-ci.org/seancheung/typolar
 
 ## Install
 
@@ -12,7 +19,7 @@ Recommended CLI tool: [typolar-cli](https://github.com/seancheung/typolar-cli)
 
 ```typescript
 import Application from 'typolar'
-const app = new Application()
+const app = new Application(__dirname)
 app.start()
 ```
 
