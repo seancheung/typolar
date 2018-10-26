@@ -162,11 +162,16 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
 /**
  * Mount router
  *
+ * @param dirname Application entrypoint directory
  * @param app Express application instance
- * @param config App config
+ * @param config Router config
  */
-export function mountRoutes(app: Express, config: Config.App.Router) {
-    const router = loadRoutes(config.path, config.style)
+export function mountRoutes(
+    dirname: string,
+    app: Express,
+    config: Config.App.Router
+) {
+    const router = loadRoutes(path.join(dirname, config.path), config.style)
     let { baseUrl } = config
     if (baseUrl && config.style) {
         baseUrl = transformUrl(baseUrl, config.style)
@@ -216,7 +221,14 @@ export function mountRoutes(app: Express, config: Config.App.Router) {
     }
 }
 
-export function setup(app: Express, config: Config) {
+/**
+ * Setup application
+ *
+ * @param dirname Application entrypoint directory
+ * @param app Express application instance
+ * @param config Config
+ */
+export function setup(dirname: string, app: Express, config: Config) {
     /**
      * Use the remote IP address in case nginx reverse proxy enabled
      */
@@ -246,14 +258,16 @@ export function setup(app: Express, config: Config) {
             })).__express
         )
         app.set('view engine', config.app.view.engine)
-        app.set('views', config.app.view.path)
+        if (config.app.view.path) {
+            app.set('views', config.app.view.path)
+        }
     }
 
     /**
      * mount router
      */
     if (config.app.router) {
-        mountRoutes(app, config.app.router)
+        mountRoutes(dirname, app, config.app.router)
     }
 
     /**
