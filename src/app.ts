@@ -10,29 +10,47 @@ class Application {
     private _logger: Logger
     private _server: Server
 
+    /**
+     * Internal express instance
+     */
     get express(): Express {
         return this._app
     }
 
-    get options(): Config {
+    /**
+     * Options
+     */
+    get options(): Readonly<Config> {
         return this._options
     }
 
+    /**
+     * Logger
+     */
     get logger(): Logger {
         return this._logger
     }
 
-    constructor(options?: Config) {
+    /**
+     * Create a new instance of Application
+     *
+     * @param dirname Application entrypoint directory
+     * @param options Application options
+     */
+    constructor(dirname: string, options?: Config) {
         if (!options) {
             options = config()
         }
         const app = express()
-        setup(app, options)
+        setup(dirname, app, options)
         this._options = options
         this._logger = getLogger('app')
         this._app = app
     }
 
+    /**
+     * Start listening
+     */
     start(): Server {
         if (this._server) {
             return this._server
