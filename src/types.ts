@@ -33,9 +33,14 @@ export type Constructor = Function
 
 import { Server } from 'http'
 export { Server }
-export type App = Express & {
-    start(): Server
-}
+
+export type Hooks = Partial<{
+    beforeLoad: () => Config
+    beforeSetup: (app: Express) => void
+    beforeMount: (app: Express) => void
+    afterMount: (app: Express) => void
+    afterSetup: (app: Express) => void
+}>
 
 export interface Contract<T = any> {
     success: boolean
@@ -47,6 +52,7 @@ export interface Contract<T = any> {
 export interface Config {
     readonly app: Readonly<Config.App>
     readonly logger: Readonly<Config.Logger>
+    readonly graphql?: Readonly<Config.Graphql>
 }
 
 export declare namespace Config {
@@ -95,6 +101,12 @@ export declare namespace Config {
         stack: Readonly<{
             pretty?: boolean
         }>
+    }
+    interface Graphql {
+        types: string
+        resolvers: string
+        baseUrl?: string
+        graphiql?: boolean
     }
 }
 

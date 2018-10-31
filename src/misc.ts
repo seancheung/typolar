@@ -3,17 +3,17 @@ import bodyParser from 'body-parser'
 import { Router } from 'express'
 import fs from 'fs'
 import { createServer } from 'http'
-import log4js from 'log4js'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
 import { boot } from './controller'
 import { NotFound } from './errors'
-import getLogger from './logger'
+import getLogger, { initialize } from './logger'
 import {
     Config,
     Express,
+    Hooks,
     Logger,
     Next,
     Request,
@@ -118,6 +118,39 @@ export function prettifyTrace(stack: string, shorten?: boolean) {
         .join('\n')
 }
 
+type Filter = (filename: string) => boolean
+
+/**
+ * Load all modules in a directory
+ *
+ * @param dir Modules directory
+ * @param filter Filter
+ */
+export function loadModules(dir: string, filter?: RegExp | Filter) {
+    let func: Filter
+    if (filter instanceof RegExp) {
+        func = t => filter.test(t)
+    } else if (!filter) {
+        func = t => /.(j|t)s$/.test(t)
+    } else {
+        func = filter
+    }
+    return fs
+        .readdirSync(dir)
+        .filter(f => func(f))
+        .map(f => path.resolve(dir, f))
+        .map(file => {
+            let item = require(file)
+            if (!item) {
+                return
+            }
+            if (item.default) {
+                item = item.default
+            }
+            return item
+        })
+}
+
 /**
  * Boot all routes in target directory
  *
@@ -127,26 +160,12 @@ export function prettifyTrace(stack: string, shorten?: boolean) {
 export function loadRoutes(dir: string, style?: Conventions): Router {
     const logger = getLogger('router')
     const router = Router() as any
-    const controllers = fs
-        .readdirSync(dir)
-        .filter(f => /.(j|t)s$/.test(f))
-        .map(f => path.resolve(dir, f))
-        .map(file => {
-            if (file === __filename) {
-                return
-            }
-            let item = require(file)
-            if (!item) {
-                return
-            }
-            if (item.default) {
-                item = item.default
-            }
-            if (typeof item === 'function') {
-                item = new item()
-            }
-            return item
-        })
+    const controllers = loadModules(dir).map(item => {
+        if (typeof item === 'function') {
+            item = new item()
+        }
+        return item
+    })
     const routes = boot(router, controllers, route => {
         if (style) {
             route.url = transformUrl(route.url, style)
@@ -170,48 +189,46 @@ export function mountRoutes(
     dirname: string,
     app: Express,
     config: Config.App.Router
-) {
+): Router {
     const router = loadRoutes(path.join(dirname, config.path), config.style)
     let { baseUrl } = config
     if (baseUrl && config.style) {
         baseUrl = transformUrl(baseUrl, config.style)
     }
-    if (process.env.NODE_ENV === 'development') {
-        if (config.mock) {
-            let filepath = config.mock
-            if (!path.isAbsolute(filepath)) {
-                filepath = path.resolve(process.cwd(), filepath)
-            }
-            if (fs.existsSync(filepath)) {
-                const logger = getLogger('mockit')
-                const mockit = require(require.resolve('mockit-express', {
-                    paths: [process.cwd()]
-                }))
-                router.use(
-                    mockit(
-                        filepath,
-                        (err: Error, changed: boolean) => {
-                            if (err) {
-                                logger.error(err)
-                            } else if (changed) {
-                                logger.info('file changed:', filepath)
-                            } else {
-                                logger.warn('file removed:', filepath)
-                            }
-                        },
-                        (route: any) => {
-                            logger.debug(
-                                `${route.bypass ? 'bypassed' : 'mounted'} ${
-                                    route.proxy ? 'proxy ' : ''
-                                }route ${route.method} ${route.url}`
-                            )
+    if (config.mock) {
+        let filepath = config.mock
+        if (!path.isAbsolute(filepath)) {
+            filepath = path.resolve(process.cwd(), filepath)
+        }
+        if (fs.existsSync(filepath)) {
+            const logger = getLogger('mockit')
+            const mockit = require(require.resolve('mockit-express', {
+                paths: [process.cwd()]
+            }))
+            router.use(
+                mockit(
+                    filepath,
+                    (err: Error, changed: boolean) => {
+                        if (err) {
+                            logger.error(err)
+                        } else if (changed) {
+                            logger.info('file changed:', filepath)
+                        } else {
+                            logger.warn('file removed:', filepath)
                         }
-                    )
+                    },
+                    (route: any) => {
+                        logger.debug(
+                            `${route.bypass ? 'bypassed' : 'mounted'} ${
+                                route.proxy ? 'proxy ' : ''
+                            }route ${route.method} ${route.url}`
+                        )
+                    }
                 )
-            } else {
-                // tslint:disable-next-line:no-console
-                console.warn('mock file defined but not found')
-            }
+            )
+        } else {
+            // tslint:disable-next-line:no-console
+            console.warn('mock file defined but not found')
         }
     }
     if (baseUrl) {
@@ -219,6 +236,7 @@ export function mountRoutes(
     } else {
         app.use(router)
     }
+    return router
 }
 
 /**
@@ -227,8 +245,14 @@ export function mountRoutes(
  * @param dirname Application entrypoint directory
  * @param app Express application instance
  * @param config Config
+ * @param hooks Hooks
  */
-export function setup(dirname: string, app: Express, config: Config) {
+export function setup(
+    dirname: string,
+    app: Express,
+    config: Config,
+    hooks?: Hooks
+) {
     /**
      * Use the remote IP address in case nginx reverse proxy enabled
      */
@@ -237,7 +261,7 @@ export function setup(dirname: string, app: Express, config: Config) {
     /**
      * Logger
      */
-    log4js.configure(config.logger)
+    initialize(config.logger)
     logHttp(app, getLogger('morgan'), config.logger.http.style)
     const logger = getLogger('app')
 
@@ -246,6 +270,10 @@ export function setup(dirname: string, app: Express, config: Config) {
      */
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: false }))
+
+    if (hooks && hooks.beforeMount) {
+        hooks.beforeMount(app)
+    }
 
     /**
      * Renderer
@@ -268,6 +296,17 @@ export function setup(dirname: string, app: Express, config: Config) {
      */
     if (config.app.router) {
         mountRoutes(dirname, app, config.app.router)
+    }
+
+    /**
+     * mount graphql
+     */
+    if (config.graphql) {
+        require('./graphql').default(dirname, app, config.graphql)
+    }
+
+    if (hooks && hooks.afterMount) {
+        hooks.afterMount(app)
     }
 
     /**

@@ -1,13 +1,15 @@
 import log4js from 'log4js'
 import { prettifyTrace } from './misc'
-import { Logger } from './types'
-import { isDevMode } from './utils'
+import { Config, Logger } from './types'
 
 let initialized: boolean
 
-export default (category?: string): Logger => {
-    if (isDevMode() && !initialized) {
-        // tslint:disable-next-line:no-var-requires
+export function initialize(config: Config.Logger) {
+    if (initialized) {
+        return
+    }
+    log4js.configure(config)
+    if (config.stack && config.stack.pretty) {
         const logger: any = require('log4js/lib/logger')
         const wrap = (func: any) => {
             return function(this: Logger, ...args: any[]) {
@@ -23,8 +25,10 @@ export default (category?: string): Logger => {
         logger.prototype.error = wrap(logger.prototype.error)
         logger.prototype.warn = wrap(logger.prototype.warn)
         logger.prototype.fatal = wrap(logger.prototype.fatal)
-        initialized = true
     }
+    initialized = true
+}
 
+export default (category?: string): Logger => {
     return log4js.getLogger(category)
 }
