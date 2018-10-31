@@ -33,9 +33,14 @@ export type Constructor = Function
 
 import { Server } from 'http'
 export { Server }
-export type App = Express & {
-    start(): Server
-}
+
+export type Hooks = Partial<{
+    beforeLoad: () => Config
+    beforeSetup: (app: Express) => void
+    beforeMount: (app: Express) => void
+    afterMount: (app: Express) => void
+    afterSetup: (app: Express) => void
+}>
 
 export interface Contract<T = any> {
     success: boolean

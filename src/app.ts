@@ -2,7 +2,7 @@ import express from 'express'
 import config from './config'
 import getLogger from './logger'
 import { setup, start } from './misc'
-import { Config, Express, Logger, Server } from './types'
+import { Config, Express, Hooks, Logger, Server } from './types'
 
 class Application {
     private _app: Express
@@ -35,14 +35,32 @@ class Application {
      * Create a new instance of Application
      *
      * @param dirname Application entrypoint directory
-     * @param options Application options
      */
-    constructor(dirname: string, options?: Config) {
-        if (!options) {
+    constructor(dirname: string)
+
+    /**
+     * Create a new instance of Application
+     *
+     * @param dirname Application entrypoint directory
+     * @param hooks Application hooks
+     */
+    constructor(dirname: string, hooks: Hooks)
+
+    constructor(dirname: string, hooks?: Hooks) {
+        let options: Config
+        if (hooks && hooks.beforeLoad) {
+            options = hooks.beforeLoad()
+        } else {
             options = config()
         }
         const app = express()
-        setup(dirname, app, options)
+        if (hooks && hooks.beforeSetup) {
+            hooks.beforeSetup(app)
+        }
+        setup(dirname, app, options, hooks)
+        if (hooks && hooks.afterSetup) {
+            hooks.afterSetup(app)
+        }
         this._options = options
         this._logger = getLogger('app')
         this._app = app

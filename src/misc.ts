@@ -3,17 +3,17 @@ import bodyParser from 'body-parser'
 import { Router } from 'express'
 import fs from 'fs'
 import { createServer } from 'http'
-import log4js from 'log4js'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
 import { boot } from './controller'
 import { NotFound } from './errors'
-import getLogger from './logger'
+import getLogger, { initialize } from './logger'
 import {
     Config,
     Express,
+    Hooks,
     Logger,
     Next,
     Request,
@@ -245,8 +245,14 @@ export function mountRoutes(
  * @param dirname Application entrypoint directory
  * @param app Express application instance
  * @param config Config
+ * @param hooks Hooks
  */
-export function setup(dirname: string, app: Express, config: Config) {
+export function setup(
+    dirname: string,
+    app: Express,
+    config: Config,
+    hooks?: Hooks
+) {
     /**
      * Use the remote IP address in case nginx reverse proxy enabled
      */
@@ -255,7 +261,7 @@ export function setup(dirname: string, app: Express, config: Config) {
     /**
      * Logger
      */
-    log4js.configure(config.logger)
+    initialize(config.logger)
     logHttp(app, getLogger('morgan'), config.logger.http.style)
     const logger = getLogger('app')
 
@@ -264,6 +270,10 @@ export function setup(dirname: string, app: Express, config: Config) {
      */
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: false }))
+
+    if (hooks && hooks.beforeMount) {
+        hooks.beforeMount(app)
+    }
 
     /**
      * Renderer
@@ -293,6 +303,10 @@ export function setup(dirname: string, app: Express, config: Config) {
      */
     if (config.graphql) {
         require('./graphql').default(dirname, app, config.graphql)
+    }
+
+    if (hooks && hooks.afterMount) {
+        hooks.afterMount(app)
     }
 
     /**
