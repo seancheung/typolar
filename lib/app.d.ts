@@ -1,6 +1,6 @@
 /// <reference types="express" />
 /// <reference types="node" />
-import { Config, Express, Logger, Server } from './types';
+import { Config, Express, Hooks, Logger, Server } from './types';
 declare class Application {
     private _app;
     private _options;
@@ -9,7 +9,8 @@ declare class Application {
     readonly express: Express;
     readonly options: Readonly<Config>;
     readonly logger: Logger;
-    constructor(dirname: string, options?: Config);
+    constructor(dirname: string);
+    constructor(dirname: string, hooks: Hooks);
     start(): Server;
 }
 export default Application;

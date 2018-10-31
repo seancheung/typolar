@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Request, RequestHandler } from 'express';
 import { Options as RequestOptions } from 'request-promise';
 import { Conventions } from 'stringcase';
@@ -25,9 +24,13 @@ export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export declare type Constructor = Function;
 import { Server } from 'http';
 export { Server };
-export declare type App = Express & {
-    start(): Server;
-};
+export declare type Hooks = Partial<{
+    beforeLoad: () => Config;
+    beforeSetup: (app: Express) => void;
+    beforeMount: (app: Express) => void;
+    afterMount: (app: Express) => void;
+    afterSetup: (app: Express) => void;
+}>;
 export interface Contract<T = any> {
     success: boolean;
     state: number;
@@ -37,6 +40,7 @@ export interface Contract<T = any> {
 export interface Config {
     readonly app: Readonly<Config.App>;
     readonly logger: Readonly<Config.Logger>;
+    readonly graphql?: Readonly<Config.Graphql>;
 }
 export declare namespace Config {
     interface Server {
@@ -84,6 +88,12 @@ export declare namespace Config {
         stack: Readonly<{
             pretty?: boolean;
         }>;
+    }
+    interface Graphql {
+        types: string;
+        resolvers: string;
+        baseUrl?: string;
+        graphiql?: boolean;
     }
 }
 export declare namespace Service {
