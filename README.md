@@ -23,6 +23,22 @@ const app = new Application(__dirname)
 app.start()
 ```
 
+Hooks:
+
+-   beforeLoad
+-   beforeSetup
+-   beforeMount
+-   afterMount
+-   afterSetup
+
+```typescript
+const app = new Application(__dirname, {
+    beforeMount(app) {
+        app.use(/*...*/)
+    }
+})
+```
+
 ### Config
 
 ```typescript
