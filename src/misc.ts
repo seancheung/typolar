@@ -118,6 +118,39 @@ export function prettifyTrace(stack: string, shorten?: boolean) {
         .join('\n')
 }
 
+type Filter = (filename: string) => boolean
+
+/**
+ * Load all modules in a directory
+ *
+ * @param dir Modules directory
+ * @param filter Filter
+ */
+export function loadModules(dir: string, filter?: RegExp | Filter) {
+    let func: Filter
+    if (filter instanceof RegExp) {
+        func = t => filter.test(t)
+    } else if (!filter) {
+        func = t => /.(j|t)s$/.test(t)
+    } else {
+        func = filter
+    }
+    return fs
+        .readdirSync(dir)
+        .filter(f => func(f))
+        .map(f => path.resolve(dir, f))
+        .map(file => {
+            let item = require(file)
+            if (!item) {
+                return
+            }
+            if (item.default) {
+                item = item.default
+            }
+            return item
+        })
+}
+
 /**
  * Boot all routes in target directory
  *
@@ -127,26 +160,12 @@ export function prettifyTrace(stack: string, shorten?: boolean) {
 export function loadRoutes(dir: string, style?: Conventions): Router {
     const logger = getLogger('router')
     const router = Router() as any
-    const controllers = fs
-        .readdirSync(dir)
-        .filter(f => /.(j|t)s$/.test(f))
-        .map(f => path.resolve(dir, f))
-        .map(file => {
-            if (file === __filename) {
-                return
-            }
-            let item = require(file)
-            if (!item) {
-                return
-            }
-            if (item.default) {
-                item = item.default
-            }
-            if (typeof item === 'function') {
-                item = new item()
-            }
-            return item
-        })
+    const controllers = loadModules(dir).map(item => {
+        if (typeof item === 'function') {
+            item = new item()
+        }
+        return item
+    })
     const routes = boot(router, controllers, route => {
         if (style) {
             route.url = transformUrl(route.url, style)
@@ -170,48 +189,46 @@ export function mountRoutes(
     dirname: string,
     app: Express,
     config: Config.App.Router
-) {
+): Router {
     const router = loadRoutes(path.join(dirname, config.path), config.style)
     let { baseUrl } = config
     if (baseUrl && config.style) {
         baseUrl = transformUrl(baseUrl, config.style)
     }
-    if (process.env.NODE_ENV === 'development') {
-        if (config.mock) {
-            let filepath = config.mock
-            if (!path.isAbsolute(filepath)) {
-                filepath = path.resolve(process.cwd(), filepath)
-            }
-            if (fs.existsSync(filepath)) {
-                const logger = getLogger('mockit')
-                const mockit = require(require.resolve('mockit-express', {
-                    paths: [process.cwd()]
-                }))
-                router.use(
-                    mockit(
-                        filepath,
-                        (err: Error, changed: boolean) => {
-                            if (err) {
-                                logger.error(err)
-                            } else if (changed) {
-                                logger.info('file changed:', filepath)
-                            } else {
-                                logger.warn('file removed:', filepath)
-                            }
-                        },
-                        (route: any) => {
-                            logger.debug(
-                                `${route.bypass ? 'bypassed' : 'mounted'} ${
-                                    route.proxy ? 'proxy ' : ''
-                                }route ${route.method} ${route.url}`
-                            )
+    if (config.mock) {
+        let filepath = config.mock
+        if (!path.isAbsolute(filepath)) {
+            filepath = path.resolve(process.cwd(), filepath)
+        }
+        if (fs.existsSync(filepath)) {
+            const logger = getLogger('mockit')
+            const mockit = require(require.resolve('mockit-express', {
+                paths: [process.cwd()]
+            }))
+            router.use(
+                mockit(
+                    filepath,
+                    (err: Error, changed: boolean) => {
+                        if (err) {
+                            logger.error(err)
+                        } else if (changed) {
+                            logger.info('file changed:', filepath)
+                        } else {
+                            logger.warn('file removed:', filepath)
                         }
-                    )
+                    },
+                    (route: any) => {
+                        logger.debug(
+                            `${route.bypass ? 'bypassed' : 'mounted'} ${
+                                route.proxy ? 'proxy ' : ''
+                            }route ${route.method} ${route.url}`
+                        )
+                    }
                 )
-            } else {
-                // tslint:disable-next-line:no-console
-                console.warn('mock file defined but not found')
-            }
+            )
+        } else {
+            // tslint:disable-next-line:no-console
+            console.warn('mock file defined but not found')
         }
     }
     if (baseUrl) {
@@ -219,6 +236,7 @@ export function mountRoutes(
     } else {
         app.use(router)
     }
+    return router
 }
 
 /**
