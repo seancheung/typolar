@@ -289,6 +289,13 @@ export function setup(dirname: string, app: Express, config: Config) {
     }
 
     /**
+     * mount graphql
+     */
+    if (config.graphql) {
+        require('./graphql').default(dirname, app, config.graphql)
+    }
+
+    /**
      * catch 404 and forward to error handler
      */
     app.use((req, res, next) => {

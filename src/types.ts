@@ -47,6 +47,7 @@ export interface Contract<T = any> {
 export interface Config {
     readonly app: Readonly<Config.App>
     readonly logger: Readonly<Config.Logger>
+    readonly graphql?: Readonly<Config.Graphql>
 }
 
 export declare namespace Config {
@@ -95,6 +96,12 @@ export declare namespace Config {
         stack: Readonly<{
             pretty?: boolean
         }>
+    }
+    interface Graphql {
+        types: string
+        resolvers: string
+        baseUrl?: string
+        graphiql?: boolean
     }
 }
 
