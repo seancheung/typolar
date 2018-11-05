@@ -324,11 +324,15 @@ export function setup(
         res.status(err.code || 500)
 
         // send error
-        res.json({
-            name: err.name,
-            error: err.code || 500,
-            message: err.message
-        })
+        if (err.toJSON) {
+            res.json(err.toJSON())
+        } else {
+            res.json({
+                name: err.name,
+                error: err.code || 500,
+                message: err.message
+            })
+        }
 
         // bypass 4xx errors
         if (!err.code || !/^(4[0-9]{2}|503)$/.test(err.code)) {

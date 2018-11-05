@@ -6,9 +6,7 @@
     ],
     "defaultSeverity": "error",
     "linterOptions": {
-        "exclude": [
-            "node_modules/**/*"
-        ]
+        "exclude": ["node_modules/**/*"]
     },
     "rules": {
         "semicolon": [true, "never"],
@@ -28,10 +26,11 @@
         "ordered-imports": true,
         "no-var-requires": true,
         "variable-name": false,
+        "one-variable-per-declaration": false,
         "only-arrow-functions": false,
         "unified-signatures": false,
         "no-namespace": false,
-        "forin":false,
+        "forin": false,
         "file-name-casing": [true, "kebab-case"],
         "trailing-comma": [
             true,

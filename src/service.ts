@@ -1,8 +1,8 @@
 import request from 'request-promise'
 import stringcase from 'stringcase'
-import { replacer, reviver } from './json'
+import { replacer, reviver, transform } from './json'
 import getLogger from './logger'
-import { Awaitable, Class, Logger, ServiceOptions } from './types'
+import { Awaitable, Class, Conventions, Logger, ServiceOptions } from './types'
 
 export abstract class Service<TContract = any> {
     /**
@@ -123,6 +123,16 @@ export abstract class Service<TContract = any> {
         res: Response<T>
     ): Awaitable<T> {
         return res.body
+    }
+
+    /**
+     * Transform value to target convention
+     *
+     * @param value Value to transform
+     * @param style Convention
+     */
+    protected _transform(value: any, style: Conventions): any {
+        return transform(style, value)
     }
 
     private async _send<T = TContract>(options: any): Promise<Response<T>> {
