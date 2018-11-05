@@ -1,6 +1,5 @@
 export { default } from './app'
 export { default as Application } from './app'
-export { default as config } from './config'
 export * from './controller'
 export * from './model'
 export { default as Service } from './service'

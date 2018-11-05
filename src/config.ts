@@ -1,3 +1,3 @@
+import config from 'kuconfig'
 import { Config } from './types'
-
-export default (): Config => require('kuconfig')
+export default (config as any) as Config

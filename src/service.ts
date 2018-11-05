@@ -1,6 +1,5 @@
 import request from 'request-promise'
 import stringcase from 'stringcase'
-import config from './config'
 import { replacer, reviver } from './json'
 import getLogger from './logger'
 import { Awaitable, Class, Logger, ServiceOptions } from './types'
@@ -16,7 +15,7 @@ export abstract class Service<TContract = any> {
         options?: ServiceOptions
     ): T {
         if (!options) {
-            const opts = config()
+            const opts = require('./config').default
             if (opts.app && opts.app.service) {
                 const { transformer, baseUrl } = opts.app.service
                 options = Object.assign(
