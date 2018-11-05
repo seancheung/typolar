@@ -42,8 +42,8 @@ const app = new Application(__dirname, {
 ### Config
 
 ```typescript
-import { config } from 'typolar'
-const tag = config().app.tag
+import config from 'typolar/config'
+const tag = config.app.tag
 ```
 
 ### Model

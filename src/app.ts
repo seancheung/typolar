@@ -1,5 +1,4 @@
 import express from 'express'
-import config from './config'
 import getLogger from './logger'
 import { setup, start } from './misc'
 import { Config, Express, Hooks, Logger, Server } from './types'
@@ -51,7 +50,7 @@ class Application {
         if (hooks && hooks.beforeLoad) {
             options = hooks.beforeLoad()
         } else {
-            options = config()
+            options = require('./config').default
         }
         const app = express()
         if (hooks && hooks.beforeSetup) {
