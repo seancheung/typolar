@@ -11,7 +11,7 @@ export declare abstract class Service<TContract = any> {
     protected _transformRequest(options: Readonly<QueryOptions>): Awaitable<QueryOptions>;
     protected _transformResponse<T = TContract>(res: Response<T>): Awaitable<T>;
     protected _transform(value: any, style: Conventions): any;
-    private _send;
+    protected _send<T = TContract>(options: ServiceOptions): Promise<Response<T>>;
 }
 export declare type Query = Record<string, any>;
 export declare type Headers = Record<string, any>;
