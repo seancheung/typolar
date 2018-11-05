@@ -135,8 +135,15 @@ export abstract class Service<TContract = any> {
         return transform(style, value)
     }
 
-    private async _send<T = TContract>(options: any): Promise<Response<T>> {
-        const response = await this._client(options)
+    /**
+     * Manually send a request
+     *
+     * @param options Request options
+     */
+    protected async _send<T = TContract>(
+        options: ServiceOptions
+    ): Promise<Response<T>> {
+        const response = await this._client(options as any)
         return response
     }
 }
