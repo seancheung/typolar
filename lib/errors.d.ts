@@ -1,3 +1,4 @@
+import { Contract } from './types';
 export declare class HttpError extends Error {
     readonly code: number;
     constructor(code: number, message?: string);
@@ -29,6 +30,15 @@ export declare class NotImplemented extends HttpError {
     constructor(message?: string);
 }
 export declare class Internal extends HttpError {
+    constructor(message?: string);
+}
+export declare class ServiceError extends Error {
     readonly state: number;
-    constructor(state: number, message?: string);
+    constructor(service: any, contract: Contract);
+    constructor(service: any, state: number, message: string);
+    toJSON(): {
+        state: number;
+        name: string;
+        message: string;
+    };
 }

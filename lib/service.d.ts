@@ -1,4 +1,4 @@
-import { Awaitable, Class, Logger, ServiceOptions } from './types';
+import { Awaitable, Class, Conventions, Logger, ServiceOptions } from './types';
 export declare abstract class Service<TContract = any> {
     static create<T extends Service>(this: Class<T>, options?: ServiceOptions): T;
     protected readonly _prefix?: string;
@@ -10,6 +10,7 @@ export declare abstract class Service<TContract = any> {
     protected _post<T = TContract>(uri: string, data?: any): Promise<T>;
     protected _transformRequest(options: Readonly<QueryOptions>): Awaitable<QueryOptions>;
     protected _transformResponse<T = TContract>(res: Response<T>): Awaitable<T>;
+    protected _transform(value: any, style: Conventions): any;
     private _send;
 }
 export declare type Query = Record<string, any>;
