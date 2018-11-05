@@ -3,6 +3,22 @@ import { Conventions } from './types'
 
 const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/
 
+export function transform(style: Conventions, value: any): any {
+    if (value == null) {
+        return value
+    }
+    if (Array.isArray(value)) {
+        return value.map(i => transform(style, i))
+    }
+    if (typeof value === 'object') {
+        return Object.entries(value).reduce(
+            (o, [k, v]) => Object.assign(o, { [stringcase[style](k)]: v }),
+            {}
+        )
+    }
+    return value
+}
+
 export function reviver(style: Conventions, key: string, value: any) {
     if (value == null) {
         return value
