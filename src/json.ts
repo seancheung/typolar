@@ -3,6 +3,12 @@ import { Conventions } from './types'
 
 const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/
 
+/**
+ * Transform an object's keys conventions recursively
+ *
+ * @param style Keys convention
+ * @param value Object to transform
+ */
 export function transform(style: Conventions, value: any): any {
     if (value == null) {
         return value
