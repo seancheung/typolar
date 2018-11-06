@@ -88,7 +88,7 @@ export abstract class Service<TContract = any> {
         if (baseUrl !== undefined) {
             opts.baseUrl = baseUrl
         }
-        const response = await this._send<T>(options)
+        const response = await this._send<T>(opts)
         return this._transformResponse(response)
     }
 
