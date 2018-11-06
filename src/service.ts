@@ -64,20 +64,31 @@ export abstract class Service<TContract = any> {
      */
     protected async _request<T = TContract>(options: Options): Promise<T> {
         let { uri } = options
-        const { method } = options
+        // tslint:disable-next-line:no-shadowed-variable
+        const { method, replacer, reviver, baseUrl } = options
         const { headers, query: qs, data: body } = await this._transformRequest(
             options as QueryOptions
         )
-        if (this._prefix) {
+        if (baseUrl === undefined && this._prefix) {
             uri = `/${this._prefix}/${uri}/`.replace(/\/{2,}/g, '/')
         }
-        const response = await this._send<T>({
+        const opts: ServiceOptions = {
             uri,
             method,
             headers,
             qs,
             body
-        })
+        }
+        if (replacer !== undefined) {
+            opts.jsonReplacer = replacer
+        }
+        if (reviver !== undefined) {
+            opts.jsonReviver = reviver
+        }
+        if (baseUrl !== undefined) {
+            opts.baseUrl = baseUrl
+        }
+        const response = await this._send<T>(options)
         return this._transformResponse(response)
     }
 
@@ -102,19 +113,19 @@ export abstract class Service<TContract = any> {
     }
 
     /**
-     * Trasnform request query options
+     * Hook to trasnform request query options
      *
      * @param options Query options
      * @returns Query options
      */
     protected _transformRequest(
-        options: Readonly<QueryOptions>
+        options: QueryOptions
     ): Awaitable<QueryOptions> {
         return options
     }
 
     /**
-     * Transform response data
+     * Hook to transform response data
      *
      * @param res Response
      * @returns Response data
@@ -136,7 +147,7 @@ export abstract class Service<TContract = any> {
     }
 
     /**
-     * Manually send a request
+     * Manually send a request(with pre-assigned options but not transform hooks)
      *
      * @param options Request options
      */
@@ -144,6 +155,26 @@ export abstract class Service<TContract = any> {
         options: ServiceOptions
     ): Promise<Response<T>> {
         const response = await this._client(options as any)
+        return response
+    }
+
+    /**
+     * Manually send a request(without pre-assigned options or transform hooks)
+     *
+     * @param options Request options
+     */
+    protected async _make<T = TContract>(
+        options: ServiceOptions
+    ): Promise<Response<T>> {
+        const response = await request(
+            Object.assign(
+                {
+                    json: true,
+                    resolveWithFullResponse: true
+                },
+                options as any
+            )
+        )
         return response
     }
 }
@@ -163,9 +194,16 @@ export interface QueryOptions {
     data: any
 }
 
+export interface OverrideOptions {
+    replacer: (key: string, value: any) => any
+    reviver: (key: string, value: any) => any
+    baseUrl: string
+}
+
 export interface Options
-    extends Readonly<RequestOptions>,
-        Partial<QueryOptions> {}
+    extends RequestOptions,
+        Partial<QueryOptions>,
+        Partial<OverrideOptions> {}
 
 export interface Request {
     uri: URL
