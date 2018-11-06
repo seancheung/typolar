@@ -8,10 +8,11 @@ export declare abstract class Service<TContract = any> {
     protected _request<T = TContract>(options: Options): Promise<T>;
     protected _get<T = TContract>(uri: string, query?: Query): Promise<T>;
     protected _post<T = TContract>(uri: string, data?: any): Promise<T>;
-    protected _transformRequest(options: Readonly<QueryOptions>): Awaitable<QueryOptions>;
+    protected _transformRequest(options: QueryOptions): Awaitable<QueryOptions>;
     protected _transformResponse<T = TContract>(res: Response<T>): Awaitable<T>;
     protected _transform(value: any, style: Conventions): any;
     protected _send<T = TContract>(options: ServiceOptions): Promise<Response<T>>;
+    protected _make<T = TContract>(options: ServiceOptions): Promise<Response<T>>;
 }
 export declare type Query = Record<string, any>;
 export declare type Headers = Record<string, any>;
@@ -25,7 +26,12 @@ export interface QueryOptions {
     query: Query;
     data: any;
 }
-export interface Options extends Readonly<RequestOptions>, Partial<QueryOptions> {
+export interface OverrideOptions {
+    replacer: (key: string, value: any) => any;
+    reviver: (key: string, value: any) => any;
+    baseUrl: string;
+}
+export interface Options extends RequestOptions, Partial<QueryOptions>, Partial<OverrideOptions> {
 }
 export interface Request {
     uri: URL;
