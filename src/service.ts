@@ -4,6 +4,9 @@ import { replacer, reviver, transform } from './json'
 import getLogger from './logger'
 import { Awaitable, Class, Conventions, Logger, ServiceOptions } from './types'
 
+/**
+ * Service base class
+ */
 export abstract class Service<TContract = any> {
     /**
      * Create an instance of target type
