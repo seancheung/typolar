@@ -1,4 +1,3 @@
-import { Contract } from './types';
 export declare class HttpError extends Error {
     readonly code: number;
     /**
@@ -78,26 +77,18 @@ export declare class Internal extends HttpError {
      */
     constructor(message?: string);
 }
-export declare class ServiceError extends Error {
-    readonly state: number;
+export declare class ContextError extends Internal {
+    readonly context?: Record<string, any>;
     /**
-     * Creates an instance of HttpError
+     * Creates an instance of CustomError
      *
-     * @param service Service instance
-     * @param contract Contract
-     */
-    constructor(service: any, contract: Contract);
-    /**
-     * Creates an instance of HttpError
-     *
-     * @param service Service instance
-     * @param state Error code
+     * @param data Error data
      * @param message Error message
      */
-    constructor(service: any, state: number, message: string);
+    constructor(data?: Record<string, any>, message?: string);
     toJSON(): {
-        state: number;
+        code: number;
         name: string;
         message: string;
-    };
+    } & Record<string, any>;
 }

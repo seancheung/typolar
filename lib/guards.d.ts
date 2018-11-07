@@ -5,13 +5,25 @@ import { Handler, Next, Request, Response } from './types';
  *
  * @param map Required fields map with key being the field key and value being the hint value
  */
-export declare function fields(map: Record<string, string>): Handler;
+export declare function body(map: Record<string, string>): Handler;
 /**
  * Check required field exists in request params
  *
  * @param map Required fields map with key being the field key and value being the hint value
  */
 export declare function params(map: Record<string, string>): Handler;
+/**
+ * Check required field exists in request query strings
+ *
+ * @param map Required fields map with key being the field key and value being the hint value
+ */
+export declare function queries(map: Record<string, string>): Handler;
+/**
+ * Check required field exists in request query strings
+ *
+ * @param map Required fields map with key being the field key and value being the hint value
+ */
+export declare function headers(map: Record<string, string>): Handler;
 /**
  * Success if current running NODE_ENV maches any
  *

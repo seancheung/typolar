@@ -56,5 +56,11 @@ export declare function mountRoutes(dirname: string, app: Express, config: Confi
  * @param hooks Hooks
  */
 export declare function setup(dirname: string, app: Express, config: Config, hooks?: Hooks): void;
+/**
+ * Mount error handler
+ *
+ * @param app Express instance
+ */
+export declare function handleError(app: Express, logger?: Logger): void;
 export declare function start(app: Express, config: Config.Server): Server;
 export {};
