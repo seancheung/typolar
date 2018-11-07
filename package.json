@@ -1,6 +1,6 @@
 {
     "name": "typolar",
-    "version": "0.11.6",
+    "version": "0.11.7",
     "description": "A simple typescript framework",
     "scripts": {
         "prebuild": "del-cli \"lib/**\" \"!lib\" \"!.gitignore\"",
@@ -33,6 +33,7 @@
         "@types/mocha": "^5.2.5",
         "@types/morgan": "^1.7.35",
         "@types/request-promise": "^4.1.42",
+        "@types/supertest": "^2.0.6",
         "chai": "^4.2.0",
         "cpy-cli": "^2.0.0",
         "cross-env": "^5.2.0",
@@ -41,7 +42,8 @@
         "graphql": "^14.0.2",
         "graphql-tools": "^4.0.3",
         "mocha": "^5.2.0",
-        "prettier": "^1.14.3",
+        "prettier": "^1.15.1",
+        "supertest": "^3.3.0",
         "ts-node": "^7.0.1",
         "tslint": "^5.11.0",
         "tslint-config-prettier": "^1.15.0",
@@ -51,7 +53,7 @@
     "dependencies": {
         "body-parser": "^1.18.3",
         "express": "^4.16.4",
-        "kuconfig": "^0.1.4",
+        "kuconfig": "^0.1.5",
         "log4js": "^3.0.6",
         "morgan": "^1.9.1",
         "request": "^2.88.0",
