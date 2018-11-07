@@ -8,7 +8,7 @@ import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
 import { boot } from './controller'
-import { NotFound } from './errors'
+import { HttpError, NotFound } from './errors'
 import getLogger, { initialize } from './logger'
 import {
     Config,
@@ -263,7 +263,6 @@ export function setup(
      */
     initialize(config.logger)
     logHttp(app, getLogger('morgan'), config.logger.http.style)
-    const logger = getLogger('app')
 
     /**
      * body parser
@@ -310,6 +309,19 @@ export function setup(
     }
 
     /**
+     * Error handler
+     */
+    const logger = getLogger('app')
+    handleError(app, logger)
+}
+
+/**
+ * Mount error handler
+ *
+ * @param app Express instance
+ */
+export function handleError(app: Express, logger?: Logger) {
+    /**
      * catch 404 and forward to error handler
      */
     app.use((req, res, next) => {
@@ -324,8 +336,8 @@ export function setup(
         res.status(err.code || 500)
 
         // send error
-        if (err.toJSON) {
-            res.json(err.toJSON())
+        if (err instanceof HttpError) {
+            res.json(err)
         } else {
             res.json({
                 name: err.name,
@@ -334,9 +346,11 @@ export function setup(
             })
         }
 
-        // bypass 4xx errors
-        if (!err.code || !/^(4[0-9]{2}|503)$/.test(err.code)) {
-            logger.error(err)
+        if (logger) {
+            // bypass 4xx errors
+            if (!err.code || !/^(4[0-9]{2}|503)$/.test(err.code)) {
+                logger.error(err)
+            }
         }
     })
 }

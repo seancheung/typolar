@@ -1,5 +1,3 @@
-import { Contract } from './types'
-
 export class HttpError extends Error {
     readonly code: number
 
@@ -113,46 +111,21 @@ export class Internal extends HttpError {
     }
 }
 
-export class ServiceError extends Error {
-    readonly state: number
+export class ContextError extends Internal {
+    readonly context?: Record<string, any>
 
     /**
-     * Creates an instance of HttpError
+     * Creates an instance of CustomError
      *
-     * @param service Service instance
-     * @param contract Contract
-     */
-    constructor(service: any, contract: Contract)
-
-    /**
-     * Creates an instance of HttpError
-     *
-     * @param service Service instance
-     * @param state Error code
+     * @param data Error data
      * @param message Error message
      */
-    constructor(service: any, state: number, message: string)
-
-    constructor(service: any, arg1: number | Contract, arg2?: string) {
-        let message: string, state: number
-        if (typeof arg1 === 'number') {
-            state = arg1
-            message = arg2
-        } else {
-            state = arg1.state
-            message = arg1.msg
-        }
+    constructor(data?: Record<string, any>, message?: string) {
         super(message)
-        Error.captureStackTrace(this, this.constructor)
-        this.state = state
-        this.name = service.constructor.name
+        this.context = data
     }
 
     toJSON() {
-        return {
-            state: this.state,
-            name: this.name || 'Unknown',
-            message: this.message
-        }
+        return Object.assign(super.toJSON(), this.context)
     }
 }
