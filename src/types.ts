@@ -25,7 +25,7 @@ export { Logger }
 
 export type Awaitable<T> = T | Promise<T>
 export type ListType<T> = T extends Array<infer P> ? P : never
-export interface Class<T = {}> {
+export interface Class<T = any> {
     new (...args: any[]): T
 }
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
