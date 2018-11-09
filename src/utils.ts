@@ -1,3 +1,4 @@
+// tslint:disable:naming-convention
 import stringcase from 'stringcase'
 import { Class, Conventions } from './types'
 
@@ -13,8 +14,8 @@ export function isDevMode() {
  *
  * @param trait Mixin trait to apply with
  */
-export function mixin<T extends Class>(trait: T) {
-    return (ctor: T) => {
+export function mixin(trait: Class) {
+    return (ctor: Class) => {
         Object.getOwnPropertyNames(trait.prototype).forEach(name => {
             ctor.prototype[name] = trait.prototype[name]
         })
@@ -26,7 +27,7 @@ export function mixin<T extends Class>(trait: T) {
  *
  * @param obj Object to clone
  */
-export function deepClone(obj: any) {
+export function deepClone<T>(obj: T): T {
     return obj != null ? JSON.parse(JSON.stringify(obj)) : obj
 }
 
@@ -35,7 +36,7 @@ export function deepClone(obj: any) {
  *
  * @param urls urls
  */
-export function joinUrls(...urls: string[]) {
+export function joinUrls(...urls: string[]): string {
     return urls
         .join('/')
         .replace(/\/{2,}/g, '/')
@@ -53,4 +54,80 @@ export function transformUrl(url: string, style: Conventions): string {
         .split('/')
         .map(p => (/^\:/.test(p) ? p : stringcase[style](p)))
         .join('/')
+}
+
+/**
+ * Pick selected keys from source object into a new object
+ *
+ * @param obj Object to pick from
+ * @param keys Properties to pick
+ */
+export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K>
+
+/**
+ * Pick selected keys from source object into a new object
+ *
+ * @param obj Object to pick from
+ * @param keys Object to pick with keys of
+ */
+export function pick<T, K extends keyof T>(
+    obj: T,
+    keys: Record<K, any>
+): Pick<T, K>
+
+export function pick<T, K extends keyof T>(
+    obj: T,
+    key: Record<K, any> | K,
+    ...keys: K[]
+) {
+    {
+        if (typeof key !== 'string') {
+            keys = Object.keys(key) as K[]
+        } else {
+            keys.unshift(key)
+        }
+        return Object.keys(obj)
+            .filter(k => keys.includes(k as K))
+            .reduce(
+                (o, k) => Object.assign(o, { [k]: (obj as any)[k] }),
+                {}
+            ) as any
+    }
+}
+
+/**
+ * Pick keys not selected from source object into a new object
+ *
+ * @param obj Object to pick from
+ * @param keys Properties to exclude
+ */
+export function strip<T, K extends keyof T>(
+    obj: T,
+    ...keys: K[]
+): Pick<T, Exclude<keyof T, K>>
+
+/**
+ * Pick keys not selected from source object into a new object
+ *
+ * @param obj Object to pick from
+ * @param keys Object to exclude keys of
+ */
+export function strip<T, K extends keyof T>(
+    obj: T,
+    keys: Record<K, any>
+): Pick<T, Exclude<keyof T, K>>
+
+export function strip<T, K extends keyof T>(
+    obj: T,
+    key: Record<K, any> | K,
+    ...keys: K[]
+): Pick<T, Exclude<keyof T, K>> {
+    if (typeof key !== 'string') {
+        keys = Object.keys(key) as K[]
+    } else {
+        keys.unshift(key)
+    }
+    return Object.keys(obj)
+        .filter(k => !keys.includes(k as K))
+        .reduce((o, k) => Object.assign(o, { [k]: (obj as any)[k] }), {}) as any
 }
