@@ -17,7 +17,7 @@ declare type Logger = Log4js;
 export { Logger };
 export declare type Awaitable<T> = T | Promise<T>;
 export declare type ListType<T> = T extends Array<infer P> ? P : never;
-export interface Class<T = {}> {
+export interface Class<T = any> {
     new (...args: any[]): T;
 }
 export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
