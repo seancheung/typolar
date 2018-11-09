@@ -1,6 +1,7 @@
 # Typolar
 
 [![Master Build][travis-master]][travis-url]
+
 [![Develop Build][travis-develop]][travis-url]
 
 A simple typescript framework
@@ -117,10 +118,39 @@ logger.info('...')
 import { errors } from 'typolar'
 ```
 
+### IoC
+
+```typescript
+import { register, fetch, flush } from 'typolar/ioc'
+
+// decorator registration
+@register()
+class MyClass {}
+
+// inline registration
+register(AnotherClass)
+// instance registration
+register(AnotherClass, new AnotherClass())
+
+// fetch registered
+const myCLass = fetch(MyClass)
+const another = fetch(Another)
+// fetch unregistered(if not registerd already, make a inline registration). lazy registration
+const third = fetch(ThirdClass)
+// bypass auto registration(might return undefined if not registered already)
+const fourth = fetch(FourthClass, false)
+
+// flush all registered
+flush()
+// flush target type
+flush(MyClass)
+```
+
 ## Test
 
 ```bash
 npm test
+
 ```
 
 ## License
