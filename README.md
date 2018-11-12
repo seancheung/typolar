@@ -118,6 +118,12 @@ logger.info('...')
 import { errors } from 'typolar'
 ```
 
+### Cache
+
+```typescript
+import cache from 'typolar/cache'
+```
+
 ### IoC
 
 ```typescript
