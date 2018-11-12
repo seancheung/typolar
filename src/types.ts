@@ -53,6 +53,7 @@ export interface Config {
     readonly app: Readonly<Config.App>
     readonly logger: Readonly<Config.Logger>
     readonly graphql?: Readonly<Config.Graphql>
+    readonly cache?: Readonly<Config.Cache>
 }
 
 export declare namespace Config {
@@ -107,6 +108,28 @@ export declare namespace Config {
         resolvers: string
         baseUrl?: string
         graphiql?: boolean
+    }
+    type Cache = Cache.Memory | Cache.Memcached
+    namespace Cache {
+        interface Basic {
+            session: Session
+        }
+        interface Memory extends Basic {
+            driver: ':memory:'
+        }
+        interface Memcached extends Basic {
+            driver: 'memcached'
+            lib: string
+            host: string
+            port: number
+            prefix?: string
+            username?: string
+            password?: string
+        }
+        interface Session {
+            secret: string
+            ttl: number
+        }
     }
 }
 
