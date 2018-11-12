@@ -124,6 +124,12 @@ import { errors } from 'typolar'
 import cache from 'typolar/cache'
 ```
 
+### JWT
+
+```typescript
+import jwt from 'typolar/jwt'
+```
+
 ### IoC
 
 ```typescript
