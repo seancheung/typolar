@@ -294,7 +294,7 @@ export function setup(
      * mount graphql
      */
     if (config.graphql) {
-        require('./graphql').default(dirname, app, config.graphql)
+        require('./graphql').mount(dirname, app, config.graphql)
     }
 
     if (hooks && hooks.afterMount) {

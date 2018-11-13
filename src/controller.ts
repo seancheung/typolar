@@ -18,6 +18,16 @@ interface Route {
 }
 type Transform = (route: Route) => void
 
+function wrap(handler: Handler): Handler {
+    return async (req, res, next) => {
+        try {
+            await handler(req, res, next)
+        } catch (error) {
+            next(error)
+        }
+    }
+}
+
 /**
  * Controller base class
  */
@@ -64,7 +74,7 @@ export function* boot(
             Reflect.apply(func, router, [
                 opts.url,
                 ...opts.middlewares,
-                opts.handler.bind(instance)
+                wrap(opts.handler.bind(instance))
             ])
             yield { method: opts.method, url: opts.url }
         }
