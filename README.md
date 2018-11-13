@@ -1,7 +1,6 @@
 # Typolar
 
 [![Master Build][travis-master]][travis-url]
-
 [![Develop Build][travis-develop]][travis-url]
 
 A simple typescript framework
