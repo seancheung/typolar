@@ -6,7 +6,7 @@ interface StoreOptions {
     prefix?: string
 }
 
-export default class CacheStore extends Store {
+export class CacheStore extends Store {
     private readonly _ttl?: number
     private readonly _prefix?: string
     constructor(private _client: CacheClient, options: StoreOptions) {
@@ -54,3 +54,5 @@ export default class CacheStore extends Store {
             .catch(err => cb(err))
     }
 }
+
+export default CacheStore

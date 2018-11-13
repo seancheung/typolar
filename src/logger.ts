@@ -1,6 +1,7 @@
+import { Config } from 'kuconfig'
 import log4js from 'log4js'
 import { prettifyTrace } from './misc'
-import { Config, Logger } from './types'
+import { Logger } from './types'
 
 let initialized: boolean
 
