@@ -4,7 +4,7 @@ interface StoreOptions {
     ttl?: number;
     prefix?: string;
 }
-export default class CacheStore extends Store {
+export declare class CacheStore extends Store {
     private _client;
     private readonly _ttl?;
     private readonly _prefix?;
@@ -14,4 +14,4 @@ export default class CacheStore extends Store {
     destroy: (sid: string, cb: (err: Error) => void) => void;
     touch: (sid: string, session: Express.SessionData, cb: (err: Error) => void) => void;
 }
-export {};
+export default CacheStore;

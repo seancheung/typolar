@@ -1,4 +1,4 @@
 import { CacheClient } from './client';
-declare let client: CacheClient;
-export { client as cache };
-export default client;
+declare let cache: CacheClient;
+export { cache };
+export default cache;

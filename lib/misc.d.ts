@@ -1,7 +1,9 @@
 /// <reference types="node" />
 import { Router } from 'express';
+import { Server } from 'http';
+import { Config } from 'kuconfig';
 import { Conventions } from 'stringcase';
-import { Config, Express, Hooks, Logger, Server } from './types';
+import { Express, Hooks, Logger } from './types';
 /**
  * Mount http logging
  *

@@ -1,7 +1,9 @@
 /// <reference types="express" />
 /// <reference types="node" />
-import { Config, Express, Hooks, Logger, Server } from './types';
-declare class Application {
+import { Server } from 'http';
+import { Config } from 'kuconfig';
+import { Express, Hooks, Logger } from './types';
+export declare class Application {
     private _app;
     private _options;
     private _logger;
