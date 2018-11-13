@@ -3,6 +3,8 @@ import bodyParser from 'body-parser'
 import { Router } from 'express'
 import fs from 'fs'
 import { createServer } from 'http'
+import { Server } from 'http'
+import { Config } from 'kuconfig'
 import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
@@ -10,16 +12,7 @@ import { Conventions } from 'stringcase'
 import { boot } from './controller'
 import { HttpError, NotFound } from './errors'
 import getLogger, { initialize } from './logger'
-import {
-    Config,
-    Express,
-    Hooks,
-    Logger,
-    Next,
-    Request,
-    Response,
-    Server
-} from './types'
+import { Express, Hooks, Logger, Next, Request, Response } from './types'
 import { isDevMode, transformUrl } from './utils'
 
 /**

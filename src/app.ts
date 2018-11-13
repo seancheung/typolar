@@ -1,9 +1,11 @@
 import express from 'express'
+import { Server } from 'http'
+import { Config } from 'kuconfig'
 import getLogger from './logger'
 import { setup, start } from './misc'
-import { Config, Express, Hooks, Logger, Server } from './types'
+import { Express, Hooks, Logger } from './types'
 
-class Application {
+export class Application {
     private _app: Express
     private _options: Config
     private _logger: Logger
