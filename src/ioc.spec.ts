@@ -2,16 +2,16 @@
 import { expect } from 'chai'
 import { fetch, flush, register } from './ioc'
 
-@register()
-class MyClass {
-    name = 'myClass'
-}
-
-class MySecond {
-    name = 'mySecond'
-}
-
 describe('ioc test', function() {
+    @register()
+    class MyClass {
+        name = 'myClass'
+    }
+
+    class MySecond {
+        name = 'mySecond'
+    }
+
     it('expect register decorator to work properly', function() {
         expect(fetch(MyClass, false))
             .to.be.instanceof(MyClass)

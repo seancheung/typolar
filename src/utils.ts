@@ -1,6 +1,6 @@
 // tslint:disable:naming-convention
 import stringcase from 'stringcase'
-import { Class, Conventions } from './types'
+import { Class, Conventions, Validator } from './types'
 
 /**
  * Check if running in dev mode
@@ -130,4 +130,55 @@ export function strip<T, K extends keyof T>(
     return Object.keys(obj)
         .filter(k => !keys.includes(k as K))
         .reduce((o, k) => Object.assign(o, { [k]: (obj as any)[k] }), {}) as any
+}
+
+/**
+ * Validate target value's type
+ *
+ * @param type Expecting type
+ * @param value Value to validate
+ */
+export function validate(type: Validator, value: any): boolean {
+    if (type == null || value == null) {
+        return value === type
+    }
+    if (typeof type === 'function') {
+        switch (type) {
+            case String:
+                return typeof value === 'string'
+            case Number:
+                return typeof value === 'number'
+            case Boolean:
+                return typeof value === 'boolean'
+            case Array:
+                return Array.isArray(value)
+            case Object:
+                return typeof value === 'object'
+            default:
+                return (type as Validator.Check)(value)
+        }
+    }
+    if (typeof type === 'object') {
+        if (type instanceof RegExp) {
+            return typeof value === 'string' && type.test(value)
+        }
+        if (Array.isArray(type)) {
+            if (!Array.isArray(value)) {
+                return false
+            }
+            if (type.length === 1) {
+                return value.every(e => validate(type[0], e))
+            }
+            if (type.length > 1) {
+                return value.every((e, i) => type[i] && validate(type[i], e))
+            }
+
+            return true
+        }
+        return Object.keys(type).every(k =>
+            validate((type as Validator.ObjectTypes)[k], value[k])
+        )
+    }
+
+    return false
 }

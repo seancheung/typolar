@@ -1,6 +1,6 @@
 {
     "name": "typolar",
-    "version": "0.12.4",
+    "version": "0.13.0",
     "description": "A simple typescript framework",
     "scripts": {
         "prebuild": "del-cli \"lib/**\" \"!lib\" \"!.gitignore\"",
@@ -60,6 +60,7 @@
         "kuconfig": "^0.1.8",
         "log4js": "^3.0.6",
         "morgan": "^1.9.1",
+        "reflect-metadata": "^0.1.12",
         "request": "^2.88.0",
         "request-promise": "^4.2.2",
         "stringcase": "^4.3.0"

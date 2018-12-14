@@ -51,10 +51,12 @@ const tag = config.app.tag
 e.g. src/models/user.ts
 
 ```typescript
-import { Model } from 'typolar'
+import { Model, prop } from 'typolar'
 
 export default class User extends Model {
     // TODO: define user model
+    @prop(String)
+    name: string
 }
 ```
 

@@ -1,18 +1,6 @@
+// tslint:disable:no-unused-expression
 import { expect } from 'chai'
 import * as utils from './utils'
-
-class ClassA {
-    funcA() {
-        //
-    }
-}
-
-@utils.mixin(ClassA)
-class ClassB {
-    funcB() {
-        //
-    }
-}
 
 describe('utils test', function() {
     it('expect pick to work properly', function() {
@@ -54,9 +42,51 @@ describe('utils test', function() {
     })
 
     it('expect mixin to work properly', function() {
+        class ClassA {
+            funcA() {
+                //
+            }
+        }
+
+        @utils.mixin(ClassA)
+        class ClassB {
+            funcB() {
+                //
+            }
+        }
         const b = new ClassB()
         expect(b)
             .to.have.property('funcA')
             .which.is.a('function')
+    })
+
+    it('expect validate to work properly', function() {
+        expect(utils.validate(String, '1')).to.be.true
+        expect(utils.validate(String, 1)).to.be.false
+        expect(utils.validate(Number, 1)).to.be.true
+        expect(utils.validate(Number, '1')).to.be.false
+        expect(utils.validate(Boolean, false)).to.be.true
+        expect(utils.validate(Boolean, true)).to.be.true
+        expect(utils.validate(Array, [])).to.be.true
+        expect(utils.validate(Array, {})).to.be.false
+        expect(utils.validate(Object, [])).to.be.true
+        expect(utils.validate(Object, {})).to.be.true
+        expect(utils.validate(Object, null)).to.be.false
+        expect(utils.validate(null, null)).to.be.true
+        expect(utils.validate(undefined, undefined)).to.be.true
+        expect(utils.validate(/^abc.+/, '123abc')).to.be.false
+        expect(utils.validate(/^abc.+/, 'abc123')).to.be.true
+        expect(utils.validate([String], ['a', 'b'])).to.be.true
+        expect(utils.validate([String], ['a', 'b', 1])).to.be.false
+        expect(utils.validate([String, Number], ['a', 1])).to.be.true
+        expect(utils.validate([[String]], [['a']])).to.be.true
+        expect(utils.validate({ name: String }, { name: null })).to.be.false
+        expect(utils.validate({ name: String }, { name: 'haha' })).to.be.true
+        expect(
+            utils.validate(
+                { child: { name: String } },
+                { child: { name: 'haha' } }
+            )
+        ).to.be.true
     })
 })

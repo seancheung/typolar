@@ -6,12 +6,12 @@ import { Request } from './types'
  *
  * @param payload Payload to sign
  * @param secret Secret
- * @param ttl Expiration in seconds
+ * @param ttl Expiration expressed in seconds or a string describing a time span zeit/ms. Eg: 60, "2 days", "10h", "7d"
  */
 export function sign(
     payload: any,
     secret: string,
-    ttl: number
+    ttl: number | string
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         jwt.sign(
@@ -35,10 +35,10 @@ export function sign(
  * @param req Request
  */
 export function extract(req: Request): string {
-    let token = req.cookies.jwt || req.headers.authorization
+    let token = (req.cookies && req.cookies.jwt) || req.headers.authorization
     if (token) {
         const matches = token.match(/(\S+)\s+(\S+)/)
-        if (matches && matches[1] === 'JWT') {
+        if (matches && (matches[1] === 'JWT' || matches[1] === 'Bearer')) {
             token = matches[2]
         }
     }
@@ -51,6 +51,7 @@ export function extract(req: Request): string {
  *
  * @param token Token
  * @param secret Secret
+ * @throws {jwt.VerifyErrors}
  */
 export function verify(token: string, secret: string): Promise<any> {
     return new Promise((resolve, reject) => {
