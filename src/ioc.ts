@@ -1,98 +1,126 @@
 // tslint:disable:no-shadowed-variable
-import { Class } from './types'
-
-const container: Map<Class, any> = new Map()
+const container: Map<string, any> = new Map()
 
 /**
- * Register a class
+ * Register data by key
  *
- * @param type Class type
+ * @param key Data key
+ * @param value Data value
+ * @see {ioc.mode}
  */
-export function register<T extends Class>(type: T): boolean
-
+export function ioc(key: string, value: any): void
 /**
- * Register a class instance
+ * Get data by key
  *
- * @param type Class type
+ * @param key Data key
  */
-export function register<T extends Class>(
-    type: T,
-    instance: InstanceType<T>
-): boolean
-/**
- * Register a class
- */
-export function register<T extends Class>(): ClassDecorator
-
-export function register<T extends Class>(
-    type?: T,
-    instance?: InstanceType<T>
-) {
-    if (type !== undefined) {
-        if (!container.has(type)) {
-            if (instance === undefined) {
-                instance = new type()
-            }
-            container.set(type, instance)
-            return true
-        }
-        return false
+export function ioc<T = any>(key: string): T
+export function ioc(key: string, value?: any): any {
+    if (value === undefined) {
+        return container.get(key)
     }
-    return (ctor: T) => {
-        if (!container.has(ctor)) {
-            container.set(ctor, new ctor())
-        }
-    }
-}
-
-/**
- * Fetch a class instance
- *
- * @param type Class type
- * @param register Auto register if not found
- */
-export function fetch<T extends Class>(
-    type: T,
-    register: false
-): InstanceType<T> | void
-
-/**
- * Fetch a class instance
- *
- * @param type Class type
- * @param register Auto register if not found
- */
-export function fetch<T extends Class>(
-    type: T,
-    register?: true
-): InstanceType<T>
-
-export function fetch<T extends Class>(
-    type: T,
-    register?: boolean
-): InstanceType<T> | void {
-    if (!container.has(type)) {
-        if (register === true || register === undefined) {
-            container.set(type, new type())
-        }
-    }
-    if (container.has(type)) {
-        return container.get(type)
-    }
-}
-
-/**
- * Flush all registered instances
- */
-export function flush<T extends Class>(): void
-/**
- * Flush  registered instance of the given type
- */
-export function flush<T extends Class>(type: T): boolean
-export function flush<T extends Class>(type?: T): boolean | void {
-    if (type === undefined) {
-        container.clear()
+    if (!container.has(key)) {
+        container.set(key, value)
     } else {
-        return container.delete(type)
+        switch (ioc.mode) {
+            case ioc.Mode.Overwrite:
+                container.set(key, value)
+                break
+            case ioc.Mode.Reject:
+                throw new ioc.DuplicateRegistrationError(key)
+        }
     }
 }
+export namespace ioc {
+    /**
+     * Registration mode
+     */
+    export enum Mode {
+        /**
+         * Ignore new registration if target key already exists
+         */
+        Ignore,
+        /**
+         * Throw an Error when processing duplicate registration
+         */
+        Reject,
+        /**
+         * Always overwrite on duplicate registration
+         */
+        Overwrite
+    }
+    export class DuplicateRegistrationError extends Error {
+        /**
+         * Data key
+         */
+        readonly key: string
+
+        /**
+         * Creates an instance of DuplicateRegistrationError
+         *
+         * @param key Data key
+         * @param message Error message
+         */
+        constructor(key: string, message?: string) {
+            super(message)
+            Error.captureStackTrace(this, this.constructor)
+            this.key = key
+        }
+    }
+    /**
+     * Registration mode
+     */
+    export let mode: Mode
+    /**
+     * Flush all registered data
+     */
+    export function flush(): void
+    /**
+     * Flush data by key
+     *
+     * @param key Data key
+     */
+    export function flush(key: string): boolean
+    export function flush(key?: string): any {
+        if (key === undefined) {
+            container.clear()
+        }
+        return container.delete(key)
+    }
+}
+
+/**
+ * Inject data into property by key. Decorated property will be morphed into a lazy getter
+ *
+ * @param key Data key
+ * @param options Options
+ */
+export function inject(
+    key: string,
+    options?: inject.Options
+): PropertyDecorator {
+    return (target: object, propertyKey: string | symbol) => {
+        Reflect.defineProperty(target, propertyKey, {
+            get() {
+                const value = ioc(key)
+                // tslint:disable-next-line:no-invalid-this
+                Reflect.defineProperty(this, propertyKey, {
+                    value,
+                    ...options
+                })
+                return value
+            },
+            configurable: true,
+            enumerable: false
+        })
+    }
+}
+export namespace inject {
+    export interface Options {
+        configurable?: boolean
+        enumerable?: boolean
+        writable?: boolean
+    }
+}
+
+export default ioc

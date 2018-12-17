@@ -134,29 +134,23 @@ import jwt from 'typolar/jwt'
 ### IoC
 
 ```typescript
-import { register, fetch, flush } from 'typolar/ioc'
+import { ioc, inject } from 'typolar/ioc'
 
-// decorator registration
-@register()
-class MyClass {}
+// register
+ioc('myKey', someValue)
+// get
+ioc('myKey')
 
-// inline registration
-register(AnotherClass)
-// instance registration
-register(AnotherClass, new AnotherClass())
-
-// fetch registered
-const myCLass = fetch(MyClass)
-const another = fetch(Another)
-// fetch unregistered(if not registerd already, make a inline registration). lazy registration
-const third = fetch(ThirdClass)
-// bypass auto registration(might return undefined if not registered already)
-const fourth = fetch(FourthClass, false)
+// property inject
+class MyClass {
+    @inject('config')
+    config: Config
+}
 
 // flush all registered
-flush()
-// flush target type
-flush(MyClass)
+ioc.flush()
+// flush target key
+ioc.flush('myKey')
 ```
 
 ## Test
