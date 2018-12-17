@@ -1,6 +1,7 @@
-import config from '../config'
+import ioc from '../ioc'
 import { CacheClient, Memcached, Memory } from './client'
 
+const config = ioc(':config')
 let cache: CacheClient
 switch (config.cache.driver) {
     case ':memory:':

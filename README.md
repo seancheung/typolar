@@ -19,20 +19,19 @@ Recommended CLI tool: [typolar-cli](https://github.com/seancheung/typolar-cli)
 
 ```typescript
 import Application from 'typolar'
-const app = new Application(__dirname)
+const app = new Application()
 app.start()
 ```
 
 Hooks:
 
--   beforeLoad
 -   beforeSetup
 -   beforeMount
 -   afterMount
 -   afterSetup
 
 ```typescript
-const app = new Application(__dirname, {
+const app = new Application({
     beforeMount(app) {
         app.use(/*...*/)
     }
@@ -108,9 +107,16 @@ export default UserService.create() as UserService
 ### Logging
 
 ```typescript
-import { getLogger } from 'typolar'
+import { getLogger, logger } from 'typolar'
+import { Logger } from 'typolar/types'
 const logger = getLogger('category')
 logger.info('...')
+
+// inject logger
+class MyClass {
+    @logger()
+    private _logger: Logger
+}
 ```
 
 ### Errors
@@ -143,7 +149,7 @@ ioc('myKey')
 
 // property inject
 class MyClass {
-    @inject('config')
+    @inject(':config')
     config: Config
 }
 

@@ -1,5 +1,4 @@
-import stringcase from 'stringcase'
-import getLogger from './logger'
+import { logger } from './logger'
 import { Handler, Logger, Middleware, Router } from './types'
 
 const META = Symbol('metadata')
@@ -32,11 +31,8 @@ function wrap(handler: Handler): Handler {
  * Controller base class
  */
 export abstract class Controller {
+    @logger()
     protected readonly _logger: Logger
-
-    constructor() {
-        this._logger = getLogger(stringcase.spinalcase(this.constructor.name))
-    }
 }
 
 export function* boot(

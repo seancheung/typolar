@@ -1,7 +1,8 @@
+import { Config } from 'kuconfig'
 import request from 'request-promise'
-import stringcase from 'stringcase'
+import ioc from './ioc'
 import { replacer, reviver, transform } from './json'
-import getLogger from './logger'
+import { logger } from './logger'
 import { Awaitable, Class, Conventions, Logger, ServiceOptions } from './types'
 
 /**
@@ -18,7 +19,7 @@ export abstract class Service<TContract = any> {
         options?: ServiceOptions
     ): T {
         if (!options) {
-            const opts = require('./config').default
+            const opts: Config = ioc(':config')
             if (opts.app && opts.app.service) {
                 const { transformer, baseUrl } = opts.app.service
                 options = Object.assign(
@@ -40,11 +41,12 @@ export abstract class Service<TContract = any> {
         }
         return new this(options)
     }
+    @logger()
+    protected readonly _logger: Logger
     /**
      * Base uri
      */
     protected readonly _prefix?: string
-    protected readonly _logger: Logger
     private readonly _client: typeof request
 
     constructor(options: ServiceOptions) {
@@ -57,7 +59,6 @@ export abstract class Service<TContract = any> {
                 options
             )
         )
-        this._logger = getLogger(stringcase.spinalcase(this.constructor.name))
     }
 
     /**

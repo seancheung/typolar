@@ -2,18 +2,13 @@ import { Router } from 'express'
 import graphql from 'express-graphql'
 import { IResolvers, ITypedef, makeExecutableSchema } from 'graphql-tools'
 import { Config } from 'kuconfig'
-import path from 'path'
 import { loadModules } from './misc'
 import { Express } from './types'
 
-export function mount(dirname: string, app: Express, config: Config.Graphql) {
+export function mount(app: Express, config: Config.Graphql) {
     const router = Router({ mergeParams: true })
-    const typeDefs: ITypedef[] = loadModules(
-        path.resolve(dirname, config.types)
-    )
-    const resolvers: IResolvers[] = loadModules(
-        path.resolve(dirname, config.resolvers)
-    )
+    const typeDefs: ITypedef[] = loadModules(config.types)
+    const resolvers: IResolvers[] = loadModules(config.resolvers)
     router.use(
         graphql({
             schema: makeExecutableSchema({ typeDefs, resolvers }),

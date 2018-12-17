@@ -1,10 +1,17 @@
+// tslint:disable:no-invalid-this no-shadowed-variable
 import { Config } from 'kuconfig'
 import log4js from 'log4js'
+import stringcase from 'stringcase'
 import { prettifyTrace } from './misc'
 import { Logger } from './types'
 
 let initialized: boolean
 
+/**
+ * Initialize logger
+ *
+ * @param config Logger config
+ */
 export function initialize(config: Config.Logger) {
     if (initialized) {
         return
@@ -19,7 +26,6 @@ export function initialize(config: Config.Logger) {
                         arg.stack = prettifyTrace(arg.stack, true)
                     }
                 })
-                // tslint:disable-next-line:no-invalid-this
                 return func.apply(this, args)
             }
         }
@@ -30,6 +36,36 @@ export function initialize(config: Config.Logger) {
     initialized = true
 }
 
-export default (category?: string): Logger => {
+/**
+ * Inject a logger into property
+ *
+ * @param category Logger category. If omitted, it'll be its class name in kebacase
+ */
+export function logger(category?: string): PropertyDecorator {
+    return (target: object, propertyKey: string | symbol) => {
+        Reflect.defineProperty(target, propertyKey, {
+            get() {
+                const value = log4js.getLogger(
+                    category || stringcase.spinalcase(this.constructor.name)
+                )
+                Reflect.defineProperty(this, propertyKey, {
+                    value
+                })
+                return value
+            },
+            configurable: true,
+            enumerable: false
+        })
+    }
+}
+
+/**
+ * Get a logger
+ *
+ * @param category Logger category
+ */
+export function getLogger(category?: string): Logger {
     return log4js.getLogger(category)
 }
+
+export default getLogger

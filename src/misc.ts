@@ -120,11 +120,16 @@ type Filter = (filename: string) => boolean
  * @param filter Filter
  */
 export function loadModules(dir: string, filter?: RegExp | Filter) {
+    const isTs = /\.ts$/i.test(path.extname(__filename))
     let func: Filter
     if (filter instanceof RegExp) {
         func = t => filter.test(t)
     } else if (!filter) {
-        func = t => /.(j|t)s$/.test(t)
+        if (isTs) {
+            func = t => /.ts$/i.test(t)
+        } else {
+            func = t => /.js$/i.test(t)
+        }
     } else {
         func = filter
     }
@@ -174,16 +179,11 @@ export function loadRoutes(dir: string, style?: Conventions): Router {
 /**
  * Mount router
  *
- * @param dirname Application entrypoint directory
  * @param app Express application instance
  * @param config Router config
  */
-export function mountRoutes(
-    dirname: string,
-    app: Express,
-    config: Config.App.Router
-): Router {
-    const router = loadRoutes(path.join(dirname, config.path), config.style)
+export function mountRoutes(app: Express, config: Config.App.Router): Router {
+    const router = loadRoutes(config.path, config.style)
     let { baseUrl } = config
     if (baseUrl && config.style) {
         baseUrl = transformUrl(baseUrl, config.style)
@@ -235,17 +235,11 @@ export function mountRoutes(
 /**
  * Setup application
  *
- * @param dirname Application entrypoint directory
  * @param app Express application instance
  * @param config Config
  * @param hooks Hooks
  */
-export function setup(
-    dirname: string,
-    app: Express,
-    config: Config,
-    hooks?: Hooks
-) {
+export function setup(app: Express, config: Config, hooks?: Hooks) {
     /**
      * Use the remote IP address in case nginx reverse proxy enabled
      */
@@ -262,10 +256,6 @@ export function setup(
      */
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: false }))
-
-    if (hooks && hooks.beforeMount) {
-        hooks.beforeMount(app)
-    }
 
     /**
      * Renderer
@@ -284,17 +274,24 @@ export function setup(
     }
 
     /**
+     * Trigger hook
+     */
+    if (hooks && hooks.beforeMount) {
+        hooks.beforeMount(app)
+    }
+
+    /**
      * mount router
      */
     if (config.app.router) {
-        mountRoutes(dirname, app, config.app.router)
+        mountRoutes(app, config.app.router)
     }
 
     /**
      * mount graphql
      */
     if (config.graphql) {
-        require('./graphql').mount(dirname, app, config.graphql)
+        require('./graphql').mount(app, config.graphql)
     }
 
     if (hooks && hooks.afterMount) {
