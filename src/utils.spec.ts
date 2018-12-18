@@ -89,4 +89,48 @@ describe('utils test', function() {
             )
         ).to.be.true
     })
+
+    it('expect localize to work properly', function() {
+        expect(utils.localize('My name is :name!', { name: 'Jack' })).to.eq(
+            'My name is Jack!'
+        )
+        expect(
+            utils.localize(
+                '{0} There are none|[1,19] There are some|[20,*] There are many',
+                0
+            )
+        ).to.eq('There are none')
+        expect(
+            utils.localize(
+                '{0} There are none|[1,19] There are some|[20,*] There are many',
+                15
+            )
+        ).to.eq('There are some')
+        expect(
+            utils.localize(
+                '{0} There are none|[1,19] There are some|[20,*] There are many',
+                100
+            )
+        ).to.eq('There are many')
+        expect(
+            utils.localize(
+                '{1} :value minute ago|[2,*] :value minutes ago',
+                1,
+                { value: '1' }
+            )
+        ).to.eq('1 minute ago')
+        expect(
+            utils.localize(
+                '{1} :value minute ago|[2,*] :value minutes ago',
+                2,
+                { value: '2' }
+            )
+        ).to.eq('2 minutes ago')
+        expect(
+            utils.localize(
+                '{0} There are none|{1} There is one|[2,*] There are :count',
+                100
+            )
+        ).to.eq('There are 100')
+    })
 })

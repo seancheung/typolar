@@ -182,3 +182,82 @@ export function validate(type: Validator, value: any): boolean {
 
     return false
 }
+
+/**
+ * Match a sub-template by count then parse it
+ *
+ * @param template Template string. Variables names start with ':'
+ * @param count Items count
+ * @param vars Variables
+ */
+export function localize(
+    template: string,
+    count: number,
+    vars?: Record<string, string>
+): string
+/**
+ * Parse template
+ *
+ * @param template Template string. Variables names start with ':'
+ * @param vars Variables
+ */
+export function localize(
+    template: string,
+    vars?: Record<string, string>
+): string
+
+export function localize(
+    template: string,
+    count: number | Record<string, string>,
+    vars?: Record<string, string>
+): string {
+    if (typeof count === 'number') {
+        const str = template
+            .split(/\|/g)
+            .map(g => g.match(/^(?:\{(\d+)\}|\[(?:(\d+),(\d+|\*))\])\s*(.+)/))
+            .reduce((s: string, m: RegExpMatchArray) => {
+                if (s != null) {
+                    return s
+                }
+                if (!m) {
+                    return
+                }
+                const [, eq, gte, lte, txt] = m
+                if (eq !== undefined) {
+                    if (isNaN(eq as any)) {
+                        return
+                    }
+                    if (Number(eq) === count) {
+                        return txt
+                    }
+                } else if (gte !== undefined && lte !== undefined) {
+                    if (isNaN(gte as any)) {
+                        return
+                    }
+                    if (count < Number(gte)) {
+                        return
+                    }
+                    if (!isNaN(lte as any) && count > Number(lte)) {
+                        return
+                    }
+                    return txt
+                }
+            }, undefined)
+        if (str == null) {
+            return template
+        }
+        vars = { count: count.toString(), ...vars }
+        template = str
+    } else {
+        vars = count
+    }
+    if (!vars) {
+        return template
+    }
+    return template.replace(/\:(\w+)/g, (_: string, cap: string) => {
+        if (cap in vars) {
+            return vars[cap]
+        }
+        return _
+    })
+}
