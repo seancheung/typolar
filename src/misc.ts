@@ -9,10 +9,11 @@ import morgan from 'morgan'
 import { networkInterfaces } from 'os'
 import path from 'path'
 import { Conventions } from 'stringcase'
+import { Application } from './app'
 import { boot } from './controller'
 import { HttpError, NotFound } from './errors'
 import getLogger, { initialize } from './logger'
-import { Express, Hooks, Logger, Next, Request, Response } from './types'
+import { Express, Logger, Next, Request, Response } from './types'
 import { isDevMode, transformUrl } from './utils'
 
 /**
@@ -239,7 +240,7 @@ export function mountRoutes(app: Express, config: Config.App.Router): Router {
  * @param config Config
  * @param hooks Hooks
  */
-export function setup(app: Express, config: Config, hooks?: Hooks) {
+export function setup(app: Express, config: Config, hooks?: Application.Hooks) {
     /**
      * Use the remote IP address in case nginx reverse proxy enabled
      */

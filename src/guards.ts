@@ -1,11 +1,11 @@
 import crypto from 'crypto'
 import { BadRequest, Forbidden, Unauthorized } from './errors'
-import { guards, Handler, Next, Request, Response, Validator } from './types'
+import { Handler, Next, Request, Response } from './types'
 import { validate } from './utils'
 
 function required(
     context: 'headers' | 'body' | 'params' | 'query',
-    fields: string[] | guards.Fields
+    fields: string[] | Fields
 ): Handler {
     if (Array.isArray(fields)) {
         fields = fields.reduce((t, k) => Object.assign(t, { [k]: k }), {})
@@ -30,7 +30,7 @@ function required(
                         `${type} is required but missing in ${context}`
                     )
                 }
-                const opt: guards.FiledOptions = type as any
+                const opt: FiledOptions = type as any
                 if (opt.validator || opt.message !== undefined) {
                     if (opt.optional && value === undefined) {
                         continue
@@ -52,7 +52,7 @@ function required(
                     }
                     throw new BadRequest(`Invalid ${key} in ${context}`)
                 }
-                if (validate(type as Validator, value)) {
+                if (validate(type as validate, value)) {
                     continue
                 }
                 throw new BadRequest(`Invalid ${key} in ${context}`)
@@ -77,7 +77,7 @@ export function body(fields: string[]): Handler
  * @param map Required fields map with key being the field key and value being the hint value, validator or field option
  * @throws {BadRequest}
  */
-export function body(fields: guards.Fields): Handler
+export function body(fields: Fields): Handler
 export function body(fields: any): Handler {
     return required('body', fields)
 }
@@ -95,7 +95,7 @@ export function params(fields: string[]): Handler
  * @param map Required fields map with key being the field key and value being the hint value, validator or field option
  * @throws {BadRequest}
  */
-export function params(fields: guards.Fields): Handler
+export function params(fields: Fields): Handler
 export function params(fields: any): Handler {
     return required('params', fields)
 }
@@ -113,7 +113,7 @@ export function queries(fields: string[]): Handler
  * @param map Required fields map with key being the field key and value being the hint value, validator or field option
  * @throws {BadRequest}
  */
-export function queries(fields: guards.Fields): Handler
+export function queries(fields: Fields): Handler
 export function queries(fields: any): Handler {
     return required('query', fields)
 }
@@ -131,7 +131,7 @@ export function headers(fields: string[]): Handler
  * @param map Required fields map with key being the field key and value being the hint value, validator or field option
  * @throws {BadRequest}
  */
-export function headers(fields: guards.Fields): Handler
+export function headers(fields: Fields): Handler
 export function headers(fields: any): Handler {
     return required('headers', fields)
 }
@@ -183,7 +183,7 @@ export function auth<T = any>(expand: (req: Request) => T): Handler {
  * @param options Pagination options
  * @throws {BadRequest} Invalid pagination arguments
  */
-export function pagination(options?: guards.Pagination): Handler {
+export function pagination(options?: Pagination): Handler {
     const {
         indexName = 'i',
         sizeName = 's',
@@ -230,7 +230,7 @@ export function pagination(options?: guards.Pagination): Handler {
  * @param options Filter options
  * @throws {BadRequest} Invalid filter expression
  */
-export function filter(options?: guards.Filter): Handler {
+export function filter(options?: Filter): Handler {
     const { filterName = 'w' } = options || {}
     return (req: Request, res: Response, next: Next) => {
         try {
@@ -264,7 +264,7 @@ export function filter(options?: guards.Filter): Handler {
  * @param options Sort options
  * @throws {BadRequest} Invalid sort expression
  */
-export function sort(options?: guards.Sort): Handler {
+export function sort(options?: Sort): Handler {
     const { sortName = 'o' } = options || {}
     return (req: Request, res: Response, next: Next) => {
         try {
@@ -298,7 +298,7 @@ export function sort(options?: guards.Sort): Handler {
  * @param options Projection options
  * @throws {BadRequest} Invalid projection expression
  */
-export function projection(options?: guards.Projection): Handler {
+export function projection(options?: Projection): Handler {
     const { projectionName = 'p' } = options || {}
     return (req: Request, res: Response, next: Next) => {
         try {
@@ -332,7 +332,7 @@ export function projection(options?: guards.Projection): Handler {
  * @param options Access options
  * @throws {Unauthorized}
  */
-export function access(options: guards.Access): Handler {
+export function access(options: Access): Handler {
     const { namespace, key, secret } = options
     return (req: Request, res: Response, next: Next) => {
         try {
@@ -367,4 +367,86 @@ export function access(options: guards.Access): Handler {
         }
         next()
     }
+}
+
+export interface FiledOptions {
+    /**
+     * Custom validator
+     */
+    validator?: validate
+    /**
+     * Custom error message
+     */
+    message?: string
+    /**
+     * Field can be omitted
+     */
+    optional?: boolean
+}
+export type Field =
+    | string
+    | Exclude<validate, validate.ObjectTypes>
+    | FiledOptions
+export type Fields = Record<string, Field>
+export interface Pagination {
+    /**
+     * Page index query string name
+     * @default 'i'
+     */
+    indexName?: string
+    /**
+     * Page size query string name
+     * @default 's'
+     */
+    sizeName?: string
+    /**
+     * Page max size
+     * @default 200
+     */
+    maxSize?: number
+    /**
+     * Page min size
+     * @default 5
+     */
+    minSize?: number
+    /**
+     * Page default size
+     * @default 20
+     */
+    defaultSize?: number
+}
+export interface Filter {
+    /**
+     * Filter query string name
+     * @default 'w'
+     */
+    filterName?: string
+}
+export interface Sort {
+    /**
+     * Sort query string name
+     * @default 'o'
+     */
+    sortName?: string
+}
+export interface Projection {
+    /**
+     * Projection query string name
+     * @default 'p'
+     */
+    projectionName?: string
+}
+export interface Access {
+    /**
+     * Signing namespace
+     */
+    namespace: string
+    /**
+     * Signing key
+     */
+    key: string
+    /**
+     * Signing secret
+     */
+    secret: string
 }

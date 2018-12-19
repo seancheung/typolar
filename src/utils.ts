@@ -1,6 +1,6 @@
 // tslint:disable:naming-convention
 import stringcase from 'stringcase'
-import { Class, Conventions, Validator } from './types'
+import { Class, Conventions } from './types'
 
 /**
  * Check if running in dev mode
@@ -138,7 +138,7 @@ export function strip<T, K extends keyof T>(
  * @param type Expecting type
  * @param value Value to validate
  */
-export function validate(type: Validator, value: any): boolean {
+export function validate(type: validate, value: any): boolean {
     if (type == null || value == null) {
         return value === type
     }
@@ -155,7 +155,7 @@ export function validate(type: Validator, value: any): boolean {
             case Object:
                 return typeof value === 'object'
             default:
-                return (type as Validator.Check)(value)
+                return (type as validate.Check)(value)
         }
     }
     if (typeof type === 'object') {
@@ -176,11 +176,32 @@ export function validate(type: Validator, value: any): boolean {
             return true
         }
         return Object.keys(type).every(k =>
-            validate((type as Validator.ObjectTypes)[k], value[k])
+            validate((type as validate.ObjectTypes)[k], value[k])
         )
     }
 
     return false
+}
+export type validate =
+    | validate.Types
+    | validate.ArrayTypes
+    | validate.ObjectTypes
+export declare namespace validate {
+    type Check = (value: any) => boolean
+    type Types =
+        | typeof String
+        | typeof Number
+        | typeof Boolean
+        | typeof Object
+        | typeof Array
+        | RegExp
+        | Check
+    interface ArrayTypes {
+        [index: number]: Types | ArrayTypes
+    }
+    interface ObjectTypes {
+        [key: string]: Types | ArrayTypes | ObjectTypes
+    }
 }
 
 /**

@@ -6,7 +6,7 @@ import path from 'path'
 import { inject, ioc } from './ioc'
 import { logger } from './logger'
 import { setup, start } from './misc'
-import { Express, Hooks, Logger } from './types'
+import { Express, Logger } from './types'
 
 function resolvePath(dirname: string) {
     if (path.isAbsolute(dirname)) {
@@ -61,7 +61,7 @@ export class Application {
      *
      * @param options Application options
      */
-    constructor(options?: Hooks) {
+    constructor(options?: Application.Hooks) {
         const config: Config = require('kuconfig')
         if (config.app.router && config.app.router.path) {
             (config.app.router as any).path = resolvePath(
@@ -116,6 +116,16 @@ export class Application {
         this._server = server
         return server
     }
+}
+
+export declare namespace Application {
+    type Hooks = Partial<{
+        beforeLoad: () => Config
+        beforeSetup: (app: Express) => void
+        beforeMount: (app: Express) => void
+        afterMount: (app: Express) => void
+        afterSetup: (app: Express) => void
+    }>
 }
 
 export default Application

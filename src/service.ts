@@ -3,7 +3,7 @@ import request from 'request-promise'
 import ioc from './ioc'
 import { replacer, reviver, transform } from './json'
 import { logger } from './logger'
-import { Awaitable, Class, Conventions, Logger, ServiceOptions } from './types'
+import { Awaitable, Class, Conventions, Logger } from './types'
 
 /**
  * Service base class
@@ -16,7 +16,7 @@ export abstract class Service<TContract = any> {
      */
     static create<T extends Service>(
         this: Class<T>,
-        options?: ServiceOptions
+        options?: Service.FullOptions
     ): T {
         if (!options) {
             const opts: Config = ioc(':config')
@@ -49,7 +49,7 @@ export abstract class Service<TContract = any> {
     protected readonly _prefix?: string
     private readonly _client: typeof request
 
-    constructor(options: ServiceOptions) {
+    constructor(options: Service.FullOptions) {
         this._client = request.defaults(
             Object.assign(
                 {
@@ -66,17 +66,19 @@ export abstract class Service<TContract = any> {
      *
      * @param options Request options
      */
-    protected async _request<T = TContract>(options: Options): Promise<T> {
+    protected async _request<T = TContract>(
+        options: Service.Options
+    ): Promise<T> {
         let { uri } = options
         // tslint:disable-next-line:no-shadowed-variable
         const { method, replacer, reviver, baseUrl } = options
         const { headers, query: qs, data: body } = await this._transformRequest(
-            options as QueryOptions
+            options as Service.QueryOptions
         )
         if (baseUrl === undefined && this._prefix) {
             uri = `/${this._prefix}/${uri}/`.replace(/\/{2,}/g, '/')
         }
-        const opts: ServiceOptions = {
+        const opts: Service.FullOptions = {
             uri,
             method,
             headers,
@@ -102,7 +104,10 @@ export abstract class Service<TContract = any> {
      * @param uri Request uri
      * @param query Query string object
      */
-    protected _get<T = TContract>(uri: string, query?: Query): Promise<T> {
+    protected _get<T = TContract>(
+        uri: string,
+        query?: Service.Query
+    ): Promise<T> {
         return this._request<T>({ uri, method: 'get', query })
     }
 
@@ -123,8 +128,8 @@ export abstract class Service<TContract = any> {
      * @returns Query options
      */
     protected _transformRequest(
-        options: QueryOptions
-    ): Awaitable<QueryOptions> {
+        options: Service.QueryOptions
+    ): Awaitable<Service.QueryOptions> {
         return options
     }
 
@@ -135,7 +140,7 @@ export abstract class Service<TContract = any> {
      * @returns Response data
      */
     protected _transformResponse<T = TContract>(
-        res: Response<T>
+        res: Service.Response<T>
     ): Awaitable<T> {
         return res.body
     }
@@ -156,8 +161,8 @@ export abstract class Service<TContract = any> {
      * @param options Request options
      */
     protected async _send<T = TContract>(
-        options: ServiceOptions
-    ): Promise<Response<T>> {
+        options: Service.FullOptions
+    ): Promise<Service.Response<T>> {
         const response = await this._client(options as any)
         return response
     }
@@ -168,8 +173,8 @@ export abstract class Service<TContract = any> {
      * @param options Request options
      */
     protected async _make<T = TContract>(
-        options: ServiceOptions
-    ): Promise<Response<T>> {
+        options: Service.FullOptions
+    ): Promise<Service.Response<T>> {
         const response = await request(
             Object.assign(
                 {
@@ -183,44 +188,55 @@ export abstract class Service<TContract = any> {
     }
 }
 
-export type Query = Record<string, any>
-export type Headers = Record<string, any>
-export type Method = 'get' | 'post' | 'put' | 'delete' | 'patch'
+export declare namespace Service {
+    // tslint:disable-next-line:no-shadowed-variable
+    type FullOptions = Partial<request.Options>
+    type Query = Record<string, any>
+    type Headers = Record<string, any>
+    type Method = 'get' | 'post' | 'put' | 'delete' | 'patch'
 
-export interface RequestOptions {
-    uri: string
-    method: Method
+    interface RequestOptions {
+        uri: string
+        method: Method
+    }
+
+    interface QueryOptions {
+        headers: Headers
+        query: Query
+        data: any
+    }
+
+    interface OverrideOptions {
+        replacer: (key: string, value: any) => any
+        reviver: (key: string, value: any) => any
+        baseUrl: string
+    }
+
+    interface Options
+        extends RequestOptions,
+            Partial<QueryOptions>,
+            Partial<OverrideOptions> {}
+
+    interface Request {
+        uri: URL
+        method: string
+        headers: Headers
+    }
+
+    interface Response<T = any> {
+        headers: Headers
+        statusCode: number
+        statusMessage: string
+        body: T
+        request: Request
+    }
 }
 
-export interface QueryOptions {
-    headers: Headers
-    query: Query
-    data: any
-}
-
-export interface OverrideOptions {
-    replacer: (key: string, value: any) => any
-    reviver: (key: string, value: any) => any
-    baseUrl: string
-}
-
-export interface Options
-    extends RequestOptions,
-        Partial<QueryOptions>,
-        Partial<OverrideOptions> {}
-
-export interface Request {
-    uri: URL
-    method: string
-    headers: Headers
-}
-
-export interface Response<T = any> {
-    headers: Headers
-    statusCode: number
-    statusMessage: string
-    body: T
-    request: Request
+export interface Contract<T = any> {
+    success: boolean
+    state: number
+    msg?: string
+    data?: T
 }
 
 export default Service

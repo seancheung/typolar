@@ -1,9 +1,8 @@
 // tslint:disable:naming-convention
 import 'reflect-metadata'
-import { Validator } from './types'
 import { validate } from './utils'
 
-type Props = Map<string | symbol | number, Validator>
+type Props = Map<string | symbol | number, validate>
 
 /**
  * Model base class
@@ -53,7 +52,7 @@ export abstract class Model {
  *
  * @param options Property options
  */
-export function prop(options?: Validator): PropertyDecorator {
+export function prop(options?: validate): PropertyDecorator {
     return function({ constructor }, propertyKey: string | symbol) {
         let ownProps: Props = Reflect.getOwnMetadata(prop.METAKEY, constructor)
         if (!ownProps) {
